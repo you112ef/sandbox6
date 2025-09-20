@@ -27,7 +27,7 @@ export default function Home() {
   return (
     <WorkspaceProvider>
       <AIProvider>
-        <div className="h-screen flex flex-col bg-terminal-bg text-terminal-fg">
+        <div className="h-screen flex flex-col bg-background text-foreground dark">
           {/* Top Toolbar */}
           <Toolbar 
             activePanel={activePanel}
@@ -40,7 +40,7 @@ export default function Home() {
           <div className="flex-1 flex overflow-hidden">
             {/* Left Sidebar - File Explorer */}
             <div 
-              className="file-explorer flex-shrink-0"
+              className="flex-shrink-0 bg-card border-r border-border"
               style={{ width: `${sidebarWidth}px` }}
             >
               <FileExplorer />
@@ -48,7 +48,7 @@ export default function Home() {
             
             {/* Resize Handle */}
             <div 
-              className="resize-handle vertical"
+              className="w-1 bg-border hover:bg-accent cursor-col-resize flex-shrink-0"
               onMouseDown={(e) => {
                 const startX = e.clientX
                 const startWidth = sidebarWidth
@@ -72,7 +72,7 @@ export default function Home() {
             <div className="flex-1 flex flex-col">
               {/* Code Editor */}
               <div 
-                className="flex-1"
+                className="flex-1 bg-background"
                 style={{ height: `calc(100% - ${panelHeight}px)` }}
               >
                 <CodeEditor />
@@ -80,7 +80,7 @@ export default function Home() {
               
               {/* Resize Handle */}
               <div 
-                className="resize-handle horizontal"
+                className="h-1 bg-border hover:bg-accent cursor-row-resize"
                 onMouseDown={(e) => {
                   const startY = e.clientY
                   const startHeight = panelHeight
@@ -102,7 +102,7 @@ export default function Home() {
               
               {/* Bottom Panel */}
               <div 
-                className="flex-shrink-0"
+                className="flex-shrink-0 bg-card border-t border-border"
                 style={{ height: `${panelHeight}px` }}
               >
                 {activePanel === 'terminal' && <Terminal />}
@@ -115,7 +115,7 @@ export default function Home() {
               <>
                 {/* Resize Handle */}
                 <div 
-                  className="resize-handle vertical"
+                  className="w-1 bg-border hover:bg-accent cursor-col-resize flex-shrink-0"
                   onMouseDown={(e) => {
                     const startX = e.clientX
                     const startWidth = rightSidebarWidth
@@ -137,7 +137,7 @@ export default function Home() {
                 
                 {/* Right Panel Content */}
                 <div 
-                  className="right-sidebar flex-shrink-0"
+                  className="flex-shrink-0 bg-card border-l border-border"
                   style={{ width: `${rightSidebarWidth}px` }}
                 >
                   {rightPanel === 'collaboration' && <CollaborationPanel />}
