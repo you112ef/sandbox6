@@ -8,7 +8,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "deploy": "./deploy.sh",
+    "demo": "echo '🚀 Starting VibeCode Terminal Demo...' && npm run dev",
+    "test": "npm run type-check && npm run lint",
+    "clean": "rm -rf .next && rm -rf node_modules && npm install"
   },
   "dependencies": {
     "next": "^14.0.0",
