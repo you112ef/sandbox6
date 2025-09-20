@@ -12,16 +12,23 @@ import {
   Maximize2,
   Minimize2,
   Wifi,
-  WifiOff
+  WifiOff,
+  Users,
+  FileText,
+  GitBranch,
+  Puzzle,
+  X
 } from 'lucide-react'
 
 interface ToolbarProps {
   activePanel: 'terminal' | 'editor' | 'chat'
   setActivePanel: (panel: 'terminal' | 'editor' | 'chat') => void
+  rightPanel: 'collaboration' | 'snippets' | 'git' | 'plugins' | null
+  setRightPanel: (panel: 'collaboration' | 'snippets' | 'git' | 'plugins' | null) => void
   className?: string
 }
 
-export default function Toolbar({ activePanel, setActivePanel, className = '' }: ToolbarProps) {
+export default function Toolbar({ activePanel, setActivePanel, rightPanel, setRightPanel, className = '' }: ToolbarProps) {
   const [isConnected, setIsConnected] = useState(true)
   const [isRunning, setIsRunning] = useState(false)
 
@@ -96,6 +103,59 @@ export default function Toolbar({ activePanel, setActivePanel, className = '' }:
 
       {/* Right Section */}
       <div className="flex items-center space-x-4">
+        {/* Right Panel Toggle Buttons */}
+        <div className="flex items-center space-x-1">
+          <button
+            onClick={() => setRightPanel(rightPanel === 'collaboration' ? null : 'collaboration')}
+            className={`p-2 rounded flex items-center space-x-1 ${
+              rightPanel === 'collaboration' 
+                ? 'bg-blue-600 text-white' 
+                : 'hover:bg-gray-700 text-gray-300'
+            }`}
+            title="Collaboration"
+          >
+            <Users className="w-4 h-4" />
+          </button>
+          
+          <button
+            onClick={() => setRightPanel(rightPanel === 'snippets' ? null : 'snippets')}
+            className={`p-2 rounded flex items-center space-x-1 ${
+              rightPanel === 'snippets' 
+                ? 'bg-blue-600 text-white' 
+                : 'hover:bg-gray-700 text-gray-300'
+            }`}
+            title="Code Snippets"
+          >
+            <FileText className="w-4 h-4" />
+          </button>
+          
+          <button
+            onClick={() => setRightPanel(rightPanel === 'git' ? null : 'git')}
+            className={`p-2 rounded flex items-center space-x-1 ${
+              rightPanel === 'git' 
+                ? 'bg-blue-600 text-white' 
+                : 'hover:bg-gray-700 text-gray-300'
+            }`}
+            title="Git Integration"
+          >
+            <GitBranch className="w-4 h-4" />
+          </button>
+          
+          <button
+            onClick={() => setRightPanel(rightPanel === 'plugins' ? null : 'plugins')}
+            className={`p-2 rounded flex items-center space-x-1 ${
+              rightPanel === 'plugins' 
+                ? 'bg-blue-600 text-white' 
+                : 'hover:bg-gray-700 text-gray-300'
+            }`}
+            title="Plugins"
+          >
+            <Puzzle className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="w-px h-6 bg-gray-600"></div>
+
         <div className="flex items-center space-x-2">
           <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
           <span className="text-sm text-gray-400">

@@ -6,12 +6,18 @@ import FileExplorer from '@/components/FileExplorer'
 import CodeEditor from '@/components/CodeEditor'
 import AIChat from '@/components/AIChat'
 import Toolbar from '@/components/Toolbar'
+import CollaborationPanel from '@/components/CollaborationPanel'
+import SnippetLibrary from '@/components/SnippetLibrary'
+import GitPanel from '@/components/GitPanel'
+import PluginManager from '@/components/PluginManager'
 import { WorkspaceProvider } from '@/contexts/WorkspaceContext'
 import { AIProvider } from '@/contexts/AIContext'
 
 export default function Home() {
   const [activePanel, setActivePanel] = useState<'terminal' | 'editor' | 'chat'>('terminal')
+  const [rightPanel, setRightPanel] = useState<'collaboration' | 'snippets' | 'git' | 'plugins' | null>(null)
   const [sidebarWidth, setSidebarWidth] = useState(300)
+  const [rightSidebarWidth, setRightSidebarWidth] = useState(300)
   const [panelHeight, setPanelHeight] = useState(300)
 
   return (
@@ -22,6 +28,8 @@ export default function Home() {
           <Toolbar 
             activePanel={activePanel}
             setActivePanel={setActivePanel}
+            rightPanel={rightPanel}
+            setRightPanel={setRightPanel}
           />
           
           {/* Main Content Area */}
@@ -97,6 +105,44 @@ export default function Home() {
                 {activePanel === 'chat' && <AIChat />}
               </div>
             </div>
+
+            {/* Right Sidebar */}
+            {rightPanel && (
+              <>
+                {/* Resize Handle */}
+                <div 
+                  className="resize-handle vertical"
+                  onMouseDown={(e) => {
+                    const startX = e.clientX
+                    const startWidth = rightSidebarWidth
+                    
+                    const handleMouseMove = (e: MouseEvent) => {
+                      const newWidth = startWidth - (e.clientX - startX)
+                      setRightSidebarWidth(Math.max(200, Math.min(600, newWidth)))
+                    }
+                    
+                    const handleMouseUp = () => {
+                      document.removeEventListener('mousemove', handleMouseMove)
+                      document.removeEventListener('mouseup', handleMouseUp)
+                    }
+                    
+                    document.addEventListener('mousemove', handleMouseMove)
+                    document.addEventListener('mouseup', handleMouseUp)
+                  }}
+                />
+                
+                {/* Right Panel Content */}
+                <div 
+                  className="right-sidebar flex-shrink-0"
+                  style={{ width: `${rightSidebarWidth}px` }}
+                >
+                  {rightPanel === 'collaboration' && <CollaborationPanel />}
+                  {rightPanel === 'snippets' && <SnippetLibrary />}
+                  {rightPanel === 'git' && <GitPanel />}
+                  {rightPanel === 'plugins' && <PluginManager />}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </AIProvider>
