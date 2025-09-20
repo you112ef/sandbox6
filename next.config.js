@@ -3,13 +3,24 @@ const nextConfig = {
   // experimental: {
   //   appDir: true, // No longer needed in Next.js 14
   // },
-  webpack: (config) => {
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      fs: false,
-      net: false,
-      tls: false,
-    };
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        child_process: false,
+        buffer: false,
+        events: false,
+        process: false,
+        stream: false,
+        util: false,
+        path: false,
+        os: false,
+        crypto: false,
+      };
+    }
     
     // Fix for xterm.js in SSR
     config.resolve.alias = {

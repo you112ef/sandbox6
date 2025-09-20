@@ -26,8 +26,8 @@ interface WorkflowEditorProps {
 export default function WorkflowEditor({ className = '' }: WorkflowEditorProps) {
   const [workflows, setWorkflows] = useState<Workflow[]>([])
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null)
-  const [nodes, setNodes, onNodesChange] = useNodesState([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState([])
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
   const [showTemplates, setShowTemplates] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [isExecuting, setIsExecuting] = useState(false)
@@ -44,8 +44,8 @@ export default function WorkflowEditor({ className = '' }: WorkflowEditorProps) 
         type: node.type,
         position: node.position,
         data: {
-          label: node.data.label,
-          ...node.data
+          ...node.data,
+          label: node.data.label as string
         }
       }))
 
@@ -53,7 +53,7 @@ export default function WorkflowEditor({ className = '' }: WorkflowEditorProps) 
         id: edge.id,
         source: edge.source,
         target: edge.target,
-        type: edge.type
+        type: edge.type || 'default'
       }))
 
       setNodes(reactFlowNodes)
@@ -109,7 +109,7 @@ export default function WorkflowEditor({ className = '' }: WorkflowEditorProps) 
       }))
     }
 
-    workflowManager.updateWorkflow(selectedWorkflow.id, updatedWorkflow)
+    workflowManager.updateWorkflow(selectedWorkflow.id, updatedWorkflow as any)
     loadWorkflows()
   }
 
@@ -153,7 +153,7 @@ export default function WorkflowEditor({ className = '' }: WorkflowEditorProps) 
       target: params.target!,
       type: 'default'
     }
-    setEdges(prev => addEdge(newEdge, prev))
+    setEdges(prev => addEdge(newEdge as any, prev))
   }, [])
 
   const handleLoadTemplate = (template: Workflow) => {

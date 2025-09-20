@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { WebSocketServer } from 'ws'
+// import { WebSocketServer } from 'ws'
 import { setupCollaborationSocket } from '@/lib/collaboration'
 
 // This would typically be handled by a separate WebSocket server

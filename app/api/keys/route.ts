@@ -10,7 +10,7 @@ export async function GET() {
     const keys = await databaseManager.getAPIKeysByUser(userId)
     
     // Don't return the actual key values for security
-    const safeKeys = keys.map(key => ({
+    const safeKeys = keys.map((key: any) => ({
       id: key.id,
       provider: key.provider,
       keyName: key.keyName,

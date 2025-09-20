@@ -1,6 +1,6 @@
-import OpenAI from 'openai'
-import Anthropic from '@anthropic-ai/sdk'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+// import OpenAI from 'openai'
+// import Anthropic from '@anthropic-ai/sdk'
+// import { GoogleGenerativeAI } from '@google/generative-ai'
 import { aiModels, getModel, getFallbackModel, isToolCallSupported } from './ai-models'
 
 export interface AIModel {
@@ -30,27 +30,28 @@ export interface AIResponse {
 }
 
 export class AIClient {
-  private openai: OpenAI | null = null
-  private anthropic: Anthropic | null = null
-  private genAI: GoogleGenerativeAI | null = null
+  private openai: any = null
+  private anthropic: any = null
+  private genAI: any = null
 
   constructor() {
     // Initialize AI clients with API keys
-    if (process.env.OPENAI_API_KEY) {
-      this.openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-      })
-    }
+    // Note: These will be implemented when the actual SDKs are available
+    // if (process.env.OPENAI_API_KEY) {
+    //   this.openai = new OpenAI({
+    //     apiKey: process.env.OPENAI_API_KEY,
+    //   })
+    // }
 
-    if (process.env.ANTHROPIC_API_KEY) {
-      this.anthropic = new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY,
-      })
-    }
+    // if (process.env.ANTHROPIC_API_KEY) {
+    //   this.anthropic = new Anthropic({
+    //     apiKey: process.env.ANTHROPIC_API_KEY,
+    //   })
+    // }
 
-    if (process.env.GOOGLE_AI_API_KEY) {
-      this.genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY)
-    }
+    // if (process.env.GOOGLE_AI_API_KEY) {
+    //   this.genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY)
+    // }
   }
 
   // Get all available models

@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { GitStatus, GitCommit, GitBranch, GitDiff, gitManager } from '@/lib/git'
+import { GitStatus, GitBranch, GitDiff, gitManager } from '@/lib/git'
 import { 
   GitBranch as GitBranchIcon, 
-  GitCommit, 
   GitPullRequest, 
   GitMerge, 
   Plus, 
@@ -27,7 +26,7 @@ interface GitPanelProps {
 
 export default function GitPanel({ className = '' }: GitPanelProps) {
   const [status, setStatus] = useState<GitStatus | null>(null)
-  const [commits, setCommits] = useState<GitCommit[]>([])
+  const [commits, setCommits] = useState<any[]>([])
   const [branches, setBranches] = useState<GitBranch[]>([])
   const [selectedDiff, setSelectedDiff] = useState<GitDiff | null>(null)
   const [commitMessage, setCommitMessage] = useState('')

@@ -42,7 +42,7 @@ export default function MCPDashboard({ className = '' }: MCPDashboardProps) {
   }, [])
 
   const loadServers = () => {
-    const allServers = mcpManager.getAllServers()
+    const allServers = mcpManager.getServers()
     setServers(allServers)
   }
 
@@ -61,11 +61,12 @@ export default function MCPDashboard({ className = '' }: MCPDashboardProps) {
 
       await mcpManager.addServer({
         name: newServer.name,
-        description: newServer.description,
         command: newServer.command,
         args,
         env,
-        enabled: true
+        enabled: true,
+        status: 'disconnected',
+        tools: []
       })
 
       loadServers()
@@ -302,7 +303,7 @@ export default function MCPDashboard({ className = '' }: MCPDashboardProps) {
                         {server.status}
                       </span>
                     </div>
-                    <p className="text-xs opacity-75 mt-1">{server.description}</p>
+                    <p className="text-xs opacity-75 mt-1">{server.name}</p>
                     <p className="text-xs opacity-50 mt-1">
                       {server.tools.length} tools • {server.command} {server.args.join(' ')}
                     </p>
@@ -359,7 +360,7 @@ export default function MCPDashboard({ className = '' }: MCPDashboardProps) {
             </div>
           </div>
           
-          <p className="text-sm text-gray-300 mb-3">{selectedServer.description}</p>
+          <p className="text-sm text-gray-300 mb-3">{selectedServer.name}</p>
           
           {selectedServer.tools.length > 0 && (
             <div className="mb-3">

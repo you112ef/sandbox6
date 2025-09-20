@@ -28,7 +28,7 @@ export default function VoiceAssistant({
     pitch: 1.0
   })
 
-  const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const recognitionRef = useRef<any>(null)
   const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
@@ -55,7 +55,7 @@ export default function VoiceAssistant({
         setIsConnected(true)
       }
 
-      recognitionRef.current.onresult = (event) => {
+      recognitionRef.current.onresult = (event: any) => {
         let finalTranscript = ''
         let interimTranscript = ''
 
@@ -76,7 +76,7 @@ export default function VoiceAssistant({
         }
       }
 
-      recognitionRef.current.onerror = (event) => {
+      recognitionRef.current.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error)
         setIsListening(false)
         setIsConnected(false)
@@ -386,7 +386,7 @@ export default function VoiceAssistant({
 // Extend Window interface for speech recognition
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition
-    webkitSpeechRecognition: typeof SpeechRecognition
+    SpeechRecognition: any
+    webkitSpeechRecognition: any
   }
 }

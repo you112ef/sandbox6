@@ -160,7 +160,7 @@ export const unsupportedToolCallModels = new Set([
 ])
 
 // Check if a model supports tool calling
-export const isToolCallSupported = (model: LanguageModel): boolean => {
+export const isToolCallSupported = (model: any): boolean => {
   return !unsupportedToolCallModels.has(model)
 }
 

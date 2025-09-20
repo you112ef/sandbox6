@@ -196,22 +196,11 @@ export default function AIChat({ className = '' }: AIChatProps) {
       {/* Settings Panel */}
       {showSettings && (
         <div className="p-4 border-b border-gray-700 bg-gray-800">
-          <h4 className="text-sm font-semibold mb-3">AI Model Settings</h4>
+          <h4 className="text-sm font-semibold mb-3">AI Settings</h4>
           <div className="space-y-2">
-            {models.map(model => (
-              <label key={model.id} className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name="model"
-                  value={model.id}
-                  checked={selectedModel === model.id}
-                  onChange={(e) => setSelectedModel(e.target.value)}
-                  className="text-blue-600"
-                />
-                <span className="text-sm">{model.name}</span>
-                <span className="text-xs text-gray-400">({model.provider})</span>
-              </label>
-            ))}
+            <p className="text-sm text-gray-400">
+              Use the model selector in the header to change AI models.
+            </p>
           </div>
         </div>
       )}

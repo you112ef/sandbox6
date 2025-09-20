@@ -27,8 +27,8 @@ import {
 interface ToolbarProps {
   activePanel: 'terminal' | 'editor' | 'chat'
   setActivePanel: (panel: 'terminal' | 'editor' | 'chat') => void
-  rightPanel: 'collaboration' | 'snippets' | 'git' | 'plugins' | 'mcp' | 'voice' | 'workflow' | 'apikeys' | null
-  setRightPanel: (panel: 'collaboration' | 'snippets' | 'git' | 'plugins' | 'mcp' | 'voice' | 'workflow' | 'apikeys' | null) => void
+  rightPanel: 'collaboration' | 'snippets' | 'voice' | 'workflow' | 'apikeys' | null
+  setRightPanel: (panel: 'collaboration' | 'snippets' | 'voice' | 'workflow' | 'apikeys' | null) => void
   className?: string
 }
 
@@ -133,41 +133,6 @@ export default function Toolbar({ activePanel, setActivePanel, rightPanel, setRi
             <FileText className="w-4 h-4" />
           </button>
           
-          <button
-            onClick={() => setRightPanel(rightPanel === 'git' ? null : 'git')}
-            className={`p-2 rounded flex items-center space-x-1 ${
-              rightPanel === 'git' 
-                ? 'bg-blue-600 text-white' 
-                : 'hover:bg-gray-700 text-gray-300'
-            }`}
-            title="Git Integration"
-          >
-            <GitBranch className="w-4 h-4" />
-          </button>
-          
-          <button
-            onClick={() => setRightPanel(rightPanel === 'plugins' ? null : 'plugins')}
-            className={`p-2 rounded flex items-center space-x-1 ${
-              rightPanel === 'plugins' 
-                ? 'bg-blue-600 text-white' 
-                : 'hover:bg-gray-700 text-gray-300'
-            }`}
-            title="Plugins"
-          >
-            <Puzzle className="w-4 h-4" />
-          </button>
-          
-          <button
-            onClick={() => setRightPanel(rightPanel === 'mcp' ? null : 'mcp')}
-            className={`p-2 rounded flex items-center space-x-1 ${
-              rightPanel === 'mcp' 
-                ? 'bg-blue-600 text-white' 
-                : 'hover:bg-gray-700 text-gray-300'
-            }`}
-            title="MCP Servers"
-          >
-            <Server className="w-4 h-4" />
-          </button>
           
           <button
             onClick={() => setRightPanel(rightPanel === 'voice' ? null : 'voice')}

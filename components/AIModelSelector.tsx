@@ -253,9 +253,9 @@ export default function AIModelSelector({
                         </div>
                         <div className="flex items-center gap-1">
                           {model.supportsToolCall && (
-                            <Wrench className="w-3 h-3 text-green-400" title="Supports Tools" />
+                            <Wrench className="w-3 h-3 text-green-400" />
                           )}
-                          <Info className="w-3 h-3 text-gray-400" title="Model Info" />
+                          <Info className="w-3 h-3 text-gray-400" />
                         </div>
                       </div>
                     </button>

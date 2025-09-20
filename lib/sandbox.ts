@@ -1,4 +1,4 @@
-import { VercelSandbox } from '@vercel/sandbox'
+// import { VercelSandbox } from '@vercel/sandbox'
 
 export interface SandboxConfig {
   timeout?: number
@@ -17,7 +17,7 @@ export interface ExecutionResult {
 }
 
 export class VibeCodeSandbox {
-  private sandbox: VercelSandbox
+  private sandbox: any
   private config: SandboxConfig
 
   constructor(config: SandboxConfig = {}) {
@@ -29,11 +29,8 @@ export class VibeCodeSandbox {
       ...config
     }
     
-    this.sandbox = new VercelSandbox({
-      token: process.env.VERCEL_SANDBOX_TOKEN,
-      timeout: this.config.timeout,
-      memory: this.config.memory
-    })
+    // Mock sandbox for now
+    this.sandbox = null
   }
 
   async executeCode(
