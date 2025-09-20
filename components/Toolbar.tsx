@@ -17,14 +17,17 @@ import {
   FileText,
   GitBranch,
   Puzzle,
+  Server,
+  Mic,
+  Workflow,
   X
 } from 'lucide-react'
 
 interface ToolbarProps {
   activePanel: 'terminal' | 'editor' | 'chat'
   setActivePanel: (panel: 'terminal' | 'editor' | 'chat') => void
-  rightPanel: 'collaboration' | 'snippets' | 'git' | 'plugins' | null
-  setRightPanel: (panel: 'collaboration' | 'snippets' | 'git' | 'plugins' | null) => void
+  rightPanel: 'collaboration' | 'snippets' | 'git' | 'plugins' | 'mcp' | 'voice' | 'workflow' | null
+  setRightPanel: (panel: 'collaboration' | 'snippets' | 'git' | 'plugins' | 'mcp' | 'voice' | 'workflow' | null) => void
   className?: string
 }
 
@@ -151,6 +154,42 @@ export default function Toolbar({ activePanel, setActivePanel, rightPanel, setRi
             title="Plugins"
           >
             <Puzzle className="w-4 h-4" />
+          </button>
+          
+          <button
+            onClick={() => setRightPanel(rightPanel === 'mcp' ? null : 'mcp')}
+            className={`p-2 rounded flex items-center space-x-1 ${
+              rightPanel === 'mcp' 
+                ? 'bg-blue-600 text-white' 
+                : 'hover:bg-gray-700 text-gray-300'
+            }`}
+            title="MCP Servers"
+          >
+            <Server className="w-4 h-4" />
+          </button>
+          
+          <button
+            onClick={() => setRightPanel(rightPanel === 'voice' ? null : 'voice')}
+            className={`p-2 rounded flex items-center space-x-1 ${
+              rightPanel === 'voice' 
+                ? 'bg-blue-600 text-white' 
+                : 'hover:bg-gray-700 text-gray-300'
+            }`}
+            title="Voice Assistant"
+          >
+            <Mic className="w-4 h-4" />
+          </button>
+          
+          <button
+            onClick={() => setRightPanel(rightPanel === 'workflow' ? null : 'workflow')}
+            className={`p-2 rounded flex items-center space-x-1 ${
+              rightPanel === 'workflow' 
+                ? 'bg-blue-600 text-white' 
+                : 'hover:bg-gray-700 text-gray-300'
+            }`}
+            title="Workflow Editor"
+          >
+            <Workflow className="w-4 h-4" />
           </button>
         </div>
 

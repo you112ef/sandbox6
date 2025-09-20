@@ -10,12 +10,15 @@ import CollaborationPanel from '@/components/CollaborationPanel'
 import SnippetLibrary from '@/components/SnippetLibrary'
 import GitPanel from '@/components/GitPanel'
 import PluginManager from '@/components/PluginManager'
+import MCPDashboard from '@/components/MCPDashboard'
+import VoiceAssistant from '@/components/VoiceAssistant'
+import WorkflowEditor from '@/components/WorkflowEditor'
 import { WorkspaceProvider } from '@/contexts/WorkspaceContext'
 import { AIProvider } from '@/contexts/AIContext'
 
 export default function Home() {
   const [activePanel, setActivePanel] = useState<'terminal' | 'editor' | 'chat'>('terminal')
-  const [rightPanel, setRightPanel] = useState<'collaboration' | 'snippets' | 'git' | 'plugins' | null>(null)
+  const [rightPanel, setRightPanel] = useState<'collaboration' | 'snippets' | 'git' | 'plugins' | 'mcp' | 'voice' | 'workflow' | null>(null)
   const [sidebarWidth, setSidebarWidth] = useState(300)
   const [rightSidebarWidth, setRightSidebarWidth] = useState(300)
   const [panelHeight, setPanelHeight] = useState(300)
@@ -140,6 +143,9 @@ export default function Home() {
                   {rightPanel === 'snippets' && <SnippetLibrary />}
                   {rightPanel === 'git' && <GitPanel />}
                   {rightPanel === 'plugins' && <PluginManager />}
+                  {rightPanel === 'mcp' && <MCPDashboard />}
+                  {rightPanel === 'voice' && <VoiceAssistant />}
+                  {rightPanel === 'workflow' && <WorkflowEditor />}
                 </div>
               </>
             )}
