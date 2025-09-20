@@ -157,21 +157,26 @@ Please provide:
   }
 
   private async chatWithGPT(message: string, config: AIConfig): Promise<AIResponse> {
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: config.systemPrompt
-        },
-        {
-          role: 'user',
-          content: message
-        }
-      ],
-      max_tokens: config.maxTokens,
-      temperature: config.temperature,
-    })
+    // Mock implementation for development
+    const response = {
+      choices: [{ message: { content: `GPT-4 response to: ${message}` } }],
+      usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 }
+    }
+    // const response = await this.openai.chat.completions.create({
+    //   model: 'gpt-4',
+    //   messages: [
+    //     {
+    //       role: 'system',
+    //       content: config.systemPrompt
+    //     },
+    //     {
+    //       role: 'user',
+    //       content: message
+    //     }
+    //   ],
+    //   max_tokens: config.maxTokens,
+    //   temperature: config.temperature,
+    // })
 
     return {
       content: response.choices[0]?.message?.content || 'No response generated',
@@ -186,17 +191,22 @@ Please provide:
   }
 
   private async chatWithClaude(message: string, config: AIConfig): Promise<AIResponse> {
-    const response = await this.anthropic.messages.create({
-      model: 'claude-3-sonnet-20240229',
-      max_tokens: config.maxTokens,
-      temperature: config.temperature,
-      messages: [
-        {
-          role: 'user',
-          content: `${config.systemPrompt}\n\nUser message: ${message}`
-        }
-      ]
-    })
+    // Mock implementation for development
+    const response = {
+      content: [{ type: 'text', text: `Claude response to: ${message}` }],
+      usage: { input_tokens: 10, output_tokens: 20 }
+    }
+    // const response = await this.anthropic.messages.create({
+    //   model: 'claude-3-sonnet-20240229',
+    //   max_tokens: config.maxTokens,
+    //   temperature: config.temperature,
+    //   messages: [
+    //     {
+    //       role: 'user',
+    //       content: `${config.systemPrompt}\n\nUser message: ${message}`
+    //     }
+    //   ]
+    // })
 
     return {
       content: response.content[0]?.type === 'text' 
@@ -207,20 +217,25 @@ Please provide:
         promptTokens: response.usage.input_tokens,
         completionTokens: response.usage.output_tokens,
         totalTokens: response.usage.input_tokens + response.usage.output_tokens
-      }
+      },
+      timestamp: new Date().toISOString()
     }
   }
 
   private async chatWithGemini(message: string, config: AIConfig): Promise<AIResponse> {
-    const model = this.genAI.getGenerativeModel({ model: 'gemini-pro' })
-    
-    const response = await model.generateContent(
-      `${config.systemPrompt}\n\nUser message: ${message}`
-    )
+    // Mock implementation for development
+    const response = {
+      response: { text: () => `Gemini response to: ${message}` }
+    }
+    // const model = this.genAI.getGenerativeModel({ model: 'gemini-pro' })
+    // const response = await model.generateContent(
+    //   `${config.systemPrompt}\n\nUser message: ${message}`
+    // )
 
     return {
       content: response.response.text(),
-      model: 'gemini-pro'
+      model: 'gemini-pro',
+      timestamp: new Date().toISOString()
     }
   }
 }

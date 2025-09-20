@@ -1,12 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Terminal as XTerm } from 'xterm'
-import { FitAddon } from 'xterm-addon-fit'
-import { WebLinksAddon } from 'xterm-addon-web-links'
-import { SearchAddon } from 'xterm-addon-search'
 import { TerminalManager } from '@/lib/terminal'
-import 'xterm/css/xterm.css'
 
 interface TerminalProps {
   className?: string
@@ -14,84 +9,95 @@ interface TerminalProps {
 
 export default function Terminal({ className = '' }: TerminalProps) {
   const terminalRef = useRef<HTMLDivElement>(null)
-  const xtermRef = useRef<XTerm | null>(null)
-  const fitAddonRef = useRef<FitAddon | null>(null)
+  const xtermRef = useRef<any>(null)
+  const fitAddonRef = useRef<any>(null)
   const terminalManagerRef = useRef<TerminalManager | null>(null)
   const [isConnected, setIsConnected] = useState(false)
 
   useEffect(() => {
     if (!terminalRef.current) return
 
-    // Initialize terminal
-    const terminal = new XTerm({
-      theme: {
-        background: '#0d1117',
-        foreground: '#c9d1d9',
-        cursor: '#58a6ff',
-        // selection: '#264f78', // Not a valid theme property
-        black: '#484f58',
-        red: '#f85149',
-        green: '#3fb950',
-        yellow: '#d29922',
-        blue: '#58a6ff',
-        magenta: '#bc8cff',
-        cyan: '#39c5cf',
-        white: '#b1bac4',
-        brightBlack: '#6e7681',
-        brightRed: '#ff7b72',
-        brightGreen: '#56d364',
-        brightYellow: '#e3b341',
-        brightBlue: '#79c0ff',
-        brightMagenta: '#d2a8ff',
-        brightCyan: '#56d4dd',
-        brightWhite: '#f0f6fc',
-      },
-      fontFamily: 'JetBrains Mono, Fira Code, Consolas, monospace',
-      fontSize: 14,
-      lineHeight: 1.2,
-      cursorBlink: true,
-      cursorStyle: 'block',
-      scrollback: 1000,
-      tabStopWidth: 4,
-    })
+    // Initialize terminal with dynamic import
+    const initTerminal = async () => {
+      const { Terminal } = await import('xterm')
+      const { FitAddon } = await import('xterm-addon-fit')
+      const { WebLinksAddon } = await import('xterm-addon-web-links')
+      const { SearchAddon } = await import('xterm-addon-search')
+      
+      const terminal = new Terminal({
+        theme: {
+          background: '#0d1117',
+          foreground: '#c9d1d9',
+          cursor: '#58a6ff',
+          // selection: '#264f78', // Not a valid theme property
+          black: '#484f58',
+          red: '#f85149',
+          green: '#3fb950',
+          yellow: '#d29922',
+          blue: '#58a6ff',
+          magenta: '#bc8cff',
+          cyan: '#39c5cf',
+          white: '#b1bac4',
+          brightBlack: '#6e7681',
+          brightRed: '#ff7b72',
+          brightGreen: '#56d364',
+          brightYellow: '#e3b341',
+          brightBlue: '#79c0ff',
+          brightMagenta: '#d2a8ff',
+          brightCyan: '#56d4dd',
+          brightWhite: '#f0f6fc',
+        },
+        fontFamily: 'JetBrains Mono, Fira Code, Consolas, monospace',
+        fontSize: 14,
+        lineHeight: 1.2,
+        cursorBlink: true,
+        cursorStyle: 'block',
+        scrollback: 1000,
+        tabStopWidth: 4,
+      })
 
-    // Add addons
-    const fitAddon = new FitAddon()
-    const webLinksAddon = new WebLinksAddon()
-    const searchAddon = new SearchAddon()
+      // Add addons
+      const fitAddon = new FitAddon()
+      const webLinksAddon = new WebLinksAddon()
+      const searchAddon = new SearchAddon()
 
-    terminal.loadAddon(fitAddon)
-    terminal.loadAddon(webLinksAddon)
-    terminal.loadAddon(searchAddon)
+      terminal.loadAddon(fitAddon)
+      terminal.loadAddon(webLinksAddon)
+      terminal.loadAddon(searchAddon)
 
-    // Open terminal
-    terminal.open(terminalRef.current)
-    fitAddon.fit()
+      // Open terminal
+      if (terminalRef.current) {
+        terminal.open(terminalRef.current)
+        fitAddon.fit()
+      }
 
-    // Store references
-    xtermRef.current = terminal
-    fitAddonRef.current = fitAddon
-    terminalManagerRef.current = new TerminalManager()
+      // Store references
+      xtermRef.current = terminal
+      fitAddonRef.current = fitAddon
+      terminalManagerRef.current = new TerminalManager()
 
-    // Initialize shell
-    initializeShell(terminal)
+      // Initialize shell
+      initializeShell(terminal)
 
-    // Handle resize
-    const handleResize = () => {
-      if (fitAddonRef.current) {
-        fitAddonRef.current.fit()
+      // Handle resize
+      const handleResize = () => {
+        if (fitAddonRef.current) {
+          fitAddonRef.current.fit()
+        }
+      }
+
+      window.addEventListener('resize', handleResize)
+
+      return () => {
+        window.removeEventListener('resize', handleResize)
+        terminal.dispose()
       }
     }
 
-    window.addEventListener('resize', handleResize)
-
-    return () => {
-      window.removeEventListener('resize', handleResize)
-      terminal.dispose()
-    }
+    initTerminal()
   }, [])
 
-  const initializeShell = (terminal: XTerm) => {
+  const initializeShell = (terminal: any) => {
     // Welcome message
     terminal.writeln('\x1b[1;32mVibeCode Terminal\x1b[0m - AI-Powered Development Environment')
     terminal.writeln('Type \x1b[1;36mhelp\x1b[0m for available commands')
@@ -136,7 +142,7 @@ export default function Terminal({ className = '' }: TerminalProps) {
     }
 
     // Handle input
-    terminal.onData((data) => {
+    terminal.onData((data: string) => {
       const code = data.charCodeAt(0)
 
       if (code === 13) { // Enter

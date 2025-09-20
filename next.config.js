@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
+  // experimental: {
+  //   appDir: true, // No longer needed in Next.js 14
+  // },
   webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
@@ -10,6 +10,13 @@ const nextConfig = {
       net: false,
       tls: false,
     };
+    
+    // Fix for xterm.js in SSR
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'xterm': false,
+    };
+    
     return config;
   },
   async headers() {

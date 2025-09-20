@@ -375,7 +375,7 @@ export default App`)
               renderWhitespace: 'selection',
               renderControlCharacters: true,
               // renderIndentGuides: true, // Deprecated option
-              highlightActiveIndentGuide: true,
+              // highlightActiveIndentGuide: true, // Deprecated option
               bracketPairColorization: {
                 enabled: true
               },
