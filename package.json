@@ -9,10 +9,17 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "deploy": "./deploy.sh",
+    "deploy": "./scripts/deploy.sh",
+    "deploy:vercel": "vercel --prod",
     "demo": "echo '🚀 Starting VibeCode Terminal Demo...' && npm run dev",
     "test": "npm run type-check && npm run lint",
-    "clean": "rm -rf .next && rm -rf node_modules && npm install"
+    "clean": "rm -rf .next && rm -rf node_modules && npm install",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:migrate": "tsx scripts/db-migrate.ts",
+    "setup:env": "cp .env.example .env.local",
+    "setup:db": "npm run db:generate && npm run db:push"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.17",

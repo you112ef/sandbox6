@@ -1,4 +1,4 @@
-// import { VercelSandbox } from '@vercel/sandbox'
+import { VercelSandbox } from '@vercel/sandbox'
 
 export interface SandboxConfig {
   timeout?: number
@@ -17,7 +17,7 @@ export interface ExecutionResult {
 }
 
 export class VibeCodeSandbox {
-  // private sandbox: VercelSandbox
+  private sandbox: VercelSandbox
   private config: SandboxConfig
 
   constructor(config: SandboxConfig = {}) {
@@ -29,12 +29,11 @@ export class VibeCodeSandbox {
       ...config
     }
     
-    // Mock implementation for development
-    // this.sandbox = new VercelSandbox({
-    //   token: process.env.VERCEL_SANDBOX_TOKEN,
-    //   timeout: this.config.timeout,
-    //   memory: this.config.memory
-    // })
+    this.sandbox = new VercelSandbox({
+      token: process.env.VERCEL_SANDBOX_TOKEN,
+      timeout: this.config.timeout,
+      memory: this.config.memory
+    })
   }
 
   async executeCode(
@@ -51,18 +50,11 @@ export class VibeCodeSandbox {
       // Configure sandbox based on language
       const sandboxConfig = this.getSandboxConfig(language, options)
       
-      // Mock implementation for development
-      const result = {
-        output: `Code executed successfully in ${language}`,
-        error: undefined,
-        memoryUsage: Math.random() * 50,
-        exitCode: 0
-      }
-      // const result = await this.sandbox.execute({
-      //   code,
-      //   language,
-      //   ...sandboxConfig
-      // })
+          const result = await this.sandbox.execute({
+            code,
+            language,
+            ...sandboxConfig
+          })
       
       const executionTime = Date.now() - startTime
       logs.push(`Execution completed in ${executionTime}ms`)
@@ -132,17 +124,10 @@ export class VibeCodeSandbox {
       logs.push(`Installing packages: ${packages.join(', ')}`)
       
       const installCommand = this.getInstallCommand(packages)
-      // Mock implementation for development
-      const result = {
-        output: `Packages installed successfully`,
-        error: undefined,
-        memoryUsage: Math.random() * 50,
-        exitCode: 0
-      }
-      // const result = await this.sandbox.execute({
-      //   code: installCommand,
-      //   language: 'bash'
-      // })
+          const result = await this.sandbox.execute({
+            code: installCommand,
+            language: 'bash'
+          })
       
       const executionTime = Date.now() - startTime
       logs.push(`Package installation completed in ${executionTime}ms`)
@@ -178,17 +163,10 @@ export class VibeCodeSandbox {
     try {
       logs.push(`Running tests: ${testCommand}`)
       
-      // Mock implementation for development
-      const result = {
-        output: `Tests completed successfully`,
-        error: undefined,
-        memoryUsage: Math.random() * 50,
-        exitCode: 0
-      }
-      // const result = await this.sandbox.execute({
-      //   code: testCommand,
-      //   language: 'bash'
-      // })
+          const result = await this.sandbox.execute({
+            code: testCommand,
+            language: 'bash'
+          })
       
       const executionTime = Date.now() - startTime
       logs.push(`Tests completed in ${executionTime}ms`)
@@ -301,9 +279,7 @@ export class VibeCodeSandbox {
 
   async cleanup(): Promise<void> {
     try {
-      // Mock implementation for development
-      console.log('Sandbox cleanup completed')
-      // await this.sandbox.cleanup()
+      await this.sandbox.cleanup()
     } catch (error) {
       console.error('Sandbox cleanup failed:', error)
     }

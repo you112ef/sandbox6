@@ -20,14 +20,15 @@ import {
   Server,
   Mic,
   Workflow,
+  Key,
   X
 } from 'lucide-react'
 
 interface ToolbarProps {
   activePanel: 'terminal' | 'editor' | 'chat'
   setActivePanel: (panel: 'terminal' | 'editor' | 'chat') => void
-  rightPanel: 'collaboration' | 'snippets' | 'git' | 'plugins' | 'mcp' | 'voice' | 'workflow' | null
-  setRightPanel: (panel: 'collaboration' | 'snippets' | 'git' | 'plugins' | 'mcp' | 'voice' | 'workflow' | null) => void
+  rightPanel: 'collaboration' | 'snippets' | 'git' | 'plugins' | 'mcp' | 'voice' | 'workflow' | 'apikeys' | null
+  setRightPanel: (panel: 'collaboration' | 'snippets' | 'git' | 'plugins' | 'mcp' | 'voice' | 'workflow' | 'apikeys' | null) => void
   className?: string
 }
 
@@ -190,6 +191,18 @@ export default function Toolbar({ activePanel, setActivePanel, rightPanel, setRi
             title="Workflow Editor"
           >
             <Workflow className="w-4 h-4" />
+          </button>
+          
+          <button
+            onClick={() => setRightPanel(rightPanel === 'apikeys' ? null : 'apikeys')}
+            className={`p-2 rounded flex items-center space-x-1 ${
+              rightPanel === 'apikeys' 
+                ? 'bg-blue-600 text-white' 
+                : 'hover:bg-gray-700 text-gray-300'
+            }`}
+            title="API Key Manager"
+          >
+            <Key className="w-4 h-4" />
           </button>
         </div>
 

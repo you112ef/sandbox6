@@ -1,6 +1,6 @@
-// import OpenAI from 'openai'
-// import Anthropic from '@anthropic-ai/sdk'
-// import { GoogleGenerativeAI } from '@google/generative-ai'
+import OpenAI from 'openai'
+import Anthropic from '@anthropic-ai/sdk'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
 export interface AIModel {
   id: string
@@ -29,21 +29,27 @@ export interface AIResponse {
 }
 
 export class AIClient {
-  // private openai: OpenAI
-  // private anthropic: Anthropic
-  // private genAI: GoogleGenerativeAI
+  private openai: OpenAI | null = null
+  private anthropic: Anthropic | null = null
+  private genAI: GoogleGenerativeAI | null = null
 
   constructor() {
-    // Mock implementation for development
-    // this.openai = new OpenAI({
-    //   apiKey: process.env.OPENAI_API_KEY,
-    // })
+    // Initialize AI clients with API keys
+    if (process.env.OPENAI_API_KEY) {
+      this.openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      })
+    }
 
-    // this.anthropic = new Anthropic({
-    //   apiKey: process.env.ANTHROPIC_API_KEY,
-    // })
+    if (process.env.ANTHROPIC_API_KEY) {
+      this.anthropic = new Anthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY,
+      })
+    }
 
-    // this.genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!)
+    if (process.env.GOOGLE_AI_API_KEY) {
+      this.genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY)
+    }
   }
 
   async chat(message: string, config: AIConfig): Promise<AIResponse> {
@@ -157,26 +163,25 @@ Please provide:
   }
 
   private async chatWithGPT(message: string, config: AIConfig): Promise<AIResponse> {
-    // Mock implementation for development
-    const response = {
-      choices: [{ message: { content: `GPT-4 response to: ${message}` } }],
-      usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 }
+    if (!this.openai) {
+      throw new Error('OpenAI API key not configured')
     }
-    // const response = await this.openai.chat.completions.create({
-    //   model: 'gpt-4',
-    //   messages: [
-    //     {
-    //       role: 'system',
-    //       content: config.systemPrompt
-    //     },
-    //     {
-    //       role: 'user',
-    //       content: message
-    //     }
-    //   ],
-    //   max_tokens: config.maxTokens,
-    //   temperature: config.temperature,
-    // })
+
+    const response = await this.openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [
+        {
+          role: 'system',
+          content: config.systemPrompt
+        },
+        {
+          role: 'user',
+          content: message
+        }
+      ],
+      max_tokens: config.maxTokens,
+      temperature: config.temperature,
+    })
 
     return {
       content: response.choices[0]?.message?.content || 'No response generated',
@@ -191,22 +196,21 @@ Please provide:
   }
 
   private async chatWithClaude(message: string, config: AIConfig): Promise<AIResponse> {
-    // Mock implementation for development
-    const response = {
-      content: [{ type: 'text', text: `Claude response to: ${message}` }],
-      usage: { input_tokens: 10, output_tokens: 20 }
+    if (!this.anthropic) {
+      throw new Error('Anthropic API key not configured')
     }
-    // const response = await this.anthropic.messages.create({
-    //   model: 'claude-3-sonnet-20240229',
-    //   max_tokens: config.maxTokens,
-    //   temperature: config.temperature,
-    //   messages: [
-    //     {
-    //       role: 'user',
-    //       content: `${config.systemPrompt}\n\nUser message: ${message}`
-    //     }
-    //   ]
-    // })
+
+    const response = await this.anthropic.messages.create({
+      model: 'claude-3-sonnet-20240229',
+      max_tokens: config.maxTokens,
+      temperature: config.temperature,
+      messages: [
+        {
+          role: 'user',
+          content: `${config.systemPrompt}\n\nUser message: ${message}`
+        }
+      ]
+    })
 
     return {
       content: response.content[0]?.type === 'text' 
@@ -223,14 +227,14 @@ Please provide:
   }
 
   private async chatWithGemini(message: string, config: AIConfig): Promise<AIResponse> {
-    // Mock implementation for development
-    const response = {
-      response: { text: () => `Gemini response to: ${message}` }
+    if (!this.genAI) {
+      throw new Error('Google AI API key not configured')
     }
-    // const model = this.genAI.getGenerativeModel({ model: 'gemini-pro' })
-    // const response = await model.generateContent(
-    //   `${config.systemPrompt}\n\nUser message: ${message}`
-    // )
+
+    const model = this.genAI.getGenerativeModel({ model: 'gemini-pro' })
+    const response = await model.generateContent(
+      `${config.systemPrompt}\n\nUser message: ${message}`
+    )
 
     return {
       content: response.response.text(),
