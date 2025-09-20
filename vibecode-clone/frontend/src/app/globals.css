@@ -1,0 +1,238 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-muted;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-border rounded-md;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground;
+}
+
+/* Terminal styles */
+.terminal {
+  background-color: #1e1e1e;
+  color: #ffffff;
+  font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+}
+
+.terminal .xterm-viewport {
+  overflow-y: scroll;
+}
+
+/* Monaco Editor styles */
+.monaco-editor {
+  --vscode-editor-background: transparent !important;
+}
+
+/* File tree styles */
+.file-tree {
+  @apply text-sm;
+}
+
+.file-tree-item {
+  @apply flex items-center gap-2 px-2 py-1 hover:bg-accent rounded-sm cursor-pointer;
+}
+
+.file-tree-item.selected {
+  @apply bg-primary text-primary-foreground;
+}
+
+.file-tree-item.modified {
+  @apply text-orange-500;
+}
+
+.file-tree-item.new {
+  @apply text-green-500;
+}
+
+.file-tree-item.deleted {
+  @apply text-red-500 line-through;
+}
+
+/* Workspace layout */
+.workspace-layout {
+  height: calc(100vh - 4rem);
+  display: grid;
+  grid-template-columns: 250px 1fr 300px;
+  grid-template-rows: 1fr 300px;
+  gap: 1px;
+  background-color: hsl(var(--border));
+}
+
+.workspace-panel {
+  @apply bg-background overflow-hidden;
+}
+
+.workspace-main {
+  grid-column: 2;
+  grid-row: 1 / -1;
+}
+
+.workspace-sidebar {
+  grid-column: 1;
+  grid-row: 1 / -1;
+}
+
+.workspace-ai-panel {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.workspace-terminal {
+  grid-column: 1 / 4;
+  grid-row: 2;
+}
+
+/* Responsive workspace */
+@media (max-width: 1024px) {
+  .workspace-layout {
+    grid-template-columns: 200px 1fr;
+    grid-template-rows: 1fr 250px;
+  }
+  
+  .workspace-ai-panel {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  
+  .workspace-terminal {
+    grid-column: 1 / 3;
+    grid-row: 3;
+  }
+}
+
+@media (max-width: 768px) {
+  .workspace-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr 200px;
+  }
+  
+  .workspace-sidebar {
+    grid-column: 1;
+    grid-row: 1;
+    height: auto;
+    max-height: 200px;
+  }
+  
+  .workspace-main {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  
+  .workspace-ai-panel,
+  .workspace-terminal {
+    grid-column: 1;
+    grid-row: 3;
+  }
+}
+
+/* Animation utilities */
+.fade-in {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Loading spinner */
+.spinner {
+  @apply inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin;
+}
+
+/* Status indicators */
+.status-online {
+  @apply w-2 h-2 bg-green-500 rounded-full;
+}
+
+.status-offline {
+  @apply w-2 h-2 bg-red-500 rounded-full;
+}
+
+.status-busy {
+  @apply w-2 h-2 bg-yellow-500 rounded-full;
+}

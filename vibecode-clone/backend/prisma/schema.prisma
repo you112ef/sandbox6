@@ -1,0 +1,432 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  username          String?   @unique
+  name              String?
+  avatar            String?
+  emailVerified     DateTime?
+  password          String?
+  twoFactorSecret   String?
+  twoFactorEnabled  Boolean   @default(false)
+  role              UserRole  @default(USER)
+  subscription      SubscriptionTier @default(FREE)
+  subscriptionId    String?
+  customerId        String?   // Stripe customer ID
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // OAuth accounts
+  accounts          Account[]
+  sessions          Session[]
+
+  // User's workspaces
+  workspaces        Workspace[]
+  collaborations    WorkspaceCollaborator[]
+  
+  // User's files and contributions
+  files             File[]
+  commits           Commit[]
+  deployments       Deployment[]
+  
+  // User's templates
+  templates         Template[]
+  
+  // Audit logs
+  auditLogs         AuditLog[]
+  
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// Workspace Management
+model Workspace {
+  id          String          @id @default(cuid())
+  name        String
+  description String?
+  type        WorkspaceType   @default(TERMINAL)
+  status      WorkspaceStatus @default(ACTIVE)
+  visibility  WorkspaceVisibility @default(PRIVATE)
+  
+  // Workspace configuration
+  settings    Json            @default("{}")
+  environment Json            @default("{}")
+  
+  // AI Agent configuration
+  aiAgent     String?         // Selected AI agent
+  aiConfig    Json            @default("{}")
+  
+  // Owner and collaborators
+  ownerId     String
+  owner       User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  collaborators WorkspaceCollaborator[]
+  
+  // Workspace content
+  files       File[]
+  commits     Commit[]
+  deployments Deployment[]
+  
+  // Workspace metrics
+  lastActivity DateTime       @default(now())
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  
+  @@map("workspaces")
+}
+
+model WorkspaceCollaborator {
+  id          String              @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        CollaboratorRole    @default(VIEWER)
+  permissions Json                @default("[]")
+  invitedAt   DateTime            @default(now())
+  joinedAt    DateTime?
+  
+  workspace   Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([workspaceId, userId])
+  @@map("workspace_collaborators")
+}
+
+// File Management
+model File {
+  id          String      @id @default(cuid())
+  name        String
+  path        String
+  content     String      @db.Text
+  language    String?
+  size        Int         @default(0)
+  mimeType    String?
+  
+  // File metadata
+  isDirectory Boolean     @default(false)
+  parentId    String?
+  parent      File?       @relation("FileHierarchy", fields: [parentId], references: [id])
+  children    File[]      @relation("FileHierarchy")
+  
+  // Workspace and owner
+  workspaceId String
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  authorId    String
+  author      User        @relation(fields: [authorId], references: [id])
+  
+  // Version control
+  version     Int         @default(1)
+  commits     CommitFile[]
+  
+  // File status
+  status      FileStatus  @default(ACTIVE)
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  @@unique([workspaceId, path])
+  @@map("files")
+}
+
+// Version Control
+model Commit {
+  id          String       @id @default(cuid())
+  hash        String       @unique
+  message     String
+  description String?
+  
+  // Commit metadata
+  workspaceId String
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  authorId    String
+  author      User         @relation(fields: [authorId], references: [id])
+  
+  // Commit content
+  files       CommitFile[]
+  
+  // Git integration
+  gitHash     String?
+  gitBranch   String?      @default("main")
+  gitRemote   String?
+  
+  createdAt   DateTime     @default(now())
+  
+  @@map("commits")
+}
+
+model CommitFile {
+  id       String           @id @default(cuid())
+  commitId String
+  fileId   String
+  action   CommitFileAction @default(MODIFIED)
+  
+  commit   Commit           @relation(fields: [commitId], references: [id], onDelete: Cascade)
+  file     File             @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  
+  @@unique([commitId, fileId])
+  @@map("commit_files")
+}
+
+// Deployment Management
+model Deployment {
+  id          String           @id @default(cuid())
+  name        String?
+  url         String?
+  status      DeploymentStatus @default(PENDING)
+  provider    DeploymentProvider
+  
+  // Deployment configuration
+  config      Json             @default("{}")
+  environment Json             @default("{}")
+  buildLogs   String?          @db.Text
+  
+  // Workspace and owner
+  workspaceId String
+  workspace   Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  deployerId  String
+  deployer    User             @relation(fields: [deployerId], references: [id])
+  
+  // Deployment metadata
+  commitHash  String?
+  branch      String?          @default("main")
+  
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  deployedAt  DateTime?
+  
+  @@map("deployments")
+}
+
+// Template System
+model Template {
+  id          String           @id @default(cuid())
+  name        String
+  description String?
+  category    TemplateCategory @default(WEB)
+  tags        String[]         @default([])
+  
+  // Template content
+  files       Json             @default("{}")
+  config      Json             @default("{}")
+  
+  // Template metadata
+  authorId    String
+  author      User             @relation(fields: [authorId], references: [id])
+  
+  visibility  TemplateVisibility @default(PUBLIC)
+  featured    Boolean          @default(false)
+  downloads   Int              @default(0)
+  stars       Int              @default(0)
+  
+  // Template versioning
+  version     String           @default("1.0.0")
+  
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  
+  @@map("templates")
+}
+
+// AI Agent Management
+model AIAgent {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  displayName String
+  description String?
+  provider    AIProvider
+  model       String
+  
+  // Agent configuration
+  config      Json       @default("{}")
+  capabilities String[]  @default([])
+  
+  // Agent status
+  status      AgentStatus @default(ACTIVE)
+  isCustom    Boolean    @default(false)
+  
+  // Usage metrics
+  requestCount Int       @default(0)
+  lastUsed    DateTime?
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  @@map("ai_agents")
+}
+
+// Monitoring and Logs
+model AuditLog {
+  id          String      @id @default(cuid())
+  action      String
+  resource    String
+  resourceId  String?
+  details     Json        @default("{}")
+  
+  // User context
+  userId      String?
+  user        User?       @relation(fields: [userId], references: [id])
+  
+  // Request context
+  ipAddress   String?
+  userAgent   String?
+  
+  createdAt   DateTime    @default(now())
+  
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model SystemMetric {
+  id        String   @id @default(cuid())
+  name      String
+  value     Float
+  unit      String?
+  tags      Json     @default("{}")
+  
+  timestamp DateTime @default(now())
+  
+  @@index([name, timestamp])
+  @@map("system_metrics")
+}
+
+// Enums
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum SubscriptionTier {
+  FREE
+  PRO
+  TEAM
+  ENTERPRISE
+}
+
+enum WorkspaceType {
+  TERMINAL
+  NOTEBOOK
+  SANDBOX
+}
+
+enum WorkspaceStatus {
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+enum WorkspaceVisibility {
+  PRIVATE
+  PUBLIC
+  TEAM
+}
+
+enum CollaboratorRole {
+  VIEWER
+  EDITOR
+  ADMIN
+}
+
+enum FileStatus {
+  ACTIVE
+  DELETED
+  ARCHIVED
+}
+
+enum CommitFileAction {
+  ADDED
+  MODIFIED
+  DELETED
+  RENAMED
+}
+
+enum DeploymentStatus {
+  PENDING
+  BUILDING
+  DEPLOYED
+  FAILED
+  CANCELLED
+}
+
+enum DeploymentProvider {
+  VERCEL
+  NETLIFY
+  FLY_IO
+  DOCKER
+  CUSTOM
+}
+
+enum TemplateCategory {
+  WEB
+  API
+  MOBILE
+  DESKTOP
+  AI_ML
+  BLOCKCHAIN
+  GAME
+  OTHER
+}
+
+enum TemplateVisibility {
+  PUBLIC
+  PRIVATE
+  TEAM
+}
+
+enum AIProvider {
+  OPENAI
+  ANTHROPIC
+  GOOGLE
+  CUSTOM
+}
+
+enum AgentStatus {
+  ACTIVE
+  INACTIVE
+  DEPRECATED
+}

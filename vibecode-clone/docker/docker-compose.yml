@@ -1,0 +1,193 @@
+version: '3.8'
+
+services:
+  # Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: vibecode-postgres
+    environment:
+      POSTGRES_DB: vibecode_db
+      POSTGRES_USER: vibecode
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vibecode"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: vibecode-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: vibecode-backend
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://vibecode:password@postgres:5432/vibecode_db
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=your-jwt-secret-change-this
+      - API_PORT=8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../backend:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # AI Agent Manager
+  ai-agent-manager:
+    build:
+      context: ../ai-agent-manager
+      dockerfile: Dockerfile
+    container_name: vibecode-ai-agents
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=redis://redis:6379
+      - AGENT_PORT=8001
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY}
+    ports:
+      - "8001:8001"
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../ai-agent-manager:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Frontend
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: vibecode-frontend
+    environment:
+      - NODE_ENV=production
+      - NEXTAUTH_SECRET=your-nextauth-secret-change-this
+      - NEXTAUTH_URL=http://localhost:3000
+      - BACKEND_URL=http://backend:8000
+      - AGENT_MANAGER_URL=http://ai-agent-manager:8001
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+      ai-agent-manager:
+        condition: service_healthy
+    volumes:
+      - ../frontend:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Sandbox Runtime (for code execution)
+  sandbox:
+    image: node:18-alpine
+    container_name: vibecode-sandbox
+    working_dir: /workspace
+    command: tail -f /dev/null
+    volumes:
+      - sandbox_data:/workspace
+    network_mode: none
+    security_opt:
+      - no-new-privileges:true
+    user: "1000:1000"
+    mem_limit: 512m
+    cpus: 0.5
+
+  # Monitoring - Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: vibecode-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - backend
+      - ai-agent-manager
+
+  # Monitoring - Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: vibecode-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+
+  # Nginx (Reverse Proxy)
+  nginx:
+    image: nginx:alpine
+    container_name: vibecode-nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+      - backend
+      - ai-agent-manager
+
+volumes:
+  postgres_data:
+  redis_data:
+  sandbox_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  default:
+    name: vibecode-network
