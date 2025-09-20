@@ -201,11 +201,11 @@ app.get('/', (req, res) => {
                 <h1>Vibecode Clone</h1>
             </div>
             
-            <p class="subtitle">AI-Powered Development Platform</p>
+            <p class="subtitle">منصة التطوير المدعومة بالذكاء الاصطناعي</p>
             
             <div class="status">
                 <div class="status-dot"></div>
-                <span>Demo Server Running</span>
+                <span>الخادم التجريبي يعمل</span>
             </div>
 
             <div class="features">
