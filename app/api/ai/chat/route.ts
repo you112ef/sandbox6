@@ -1,77 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-// Mock AI responses for development
-const mockAIResponses = {
-  'claude-3-sonnet': (message: string) => {
-    if (message.toLowerCase().includes('hello')) {
-      return 'Hello! I\'m Claude, your AI coding assistant. How can I help you today?'
-    }
-    if (message.toLowerCase().includes('react')) {
-      return `Here's a React component example:
-
-\`\`\`tsx
-import React, { useState } from 'react'
-
-const MyComponent = () => {
-  const [count, setCount] = useState(0)
-  
-  return (
-    <div>
-      <h1>Count: {count}</h1>
-      <button onClick={() => setCount(count + 1)}>
-        Increment
-      </button>
-    </div>
-  )
-}
-
-export default MyComponent
-\`\`\``
-    }
-    return `I understand you're asking about "${message}". I'm here to help with your coding needs!`
-  },
-  'gpt-4': (message: string) => {
-    if (message.toLowerCase().includes('hello')) {
-      return 'Hello! I\'m GPT-4, ready to assist with your development tasks.'
-    }
-    return `GPT-4 response to: "${message}"`
-  },
-  'gemini-pro': (message: string) => {
-    if (message.toLowerCase().includes('hello')) {
-      return 'Hello! I\'m Gemini Pro, your AI assistant for coding and development.'
-    }
-    return `Gemini Pro response to: "${message}"`
-  }
-}
+import { aiClient } from '@/lib/ai'
+import { getModel, getFallbackModel } from '@/lib/ai-models'
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, model = 'claude-3-sonnet', temperature = 0.7, maxTokens = 4000 } = await request.json()
+    const { message, model = 'gpt-4o', provider = 'openai', temperature = 0.7, maxTokens = 4000 } = await request.json()
 
     if (!message) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 })
     }
 
+    // Get the AI model
+    const aiModel = getModel(provider, model) || getFallbackModel()
+    
+    if (!aiModel) {
+      return NextResponse.json(
+        { error: 'Invalid model or provider' },
+        { status: 400 }
+      )
+    }
+
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000))
 
-    // Get mock response based on model
-    const getResponse = mockAIResponses[model as keyof typeof mockAIResponses]
-    if (!getResponse) {
-      return NextResponse.json({ error: 'Invalid model specified' }, { status: 400 })
-    }
-
-    const response = getResponse(message)
+    // Get AI response using the selected model
+    const response = await aiClient.chat(message, {
+      model,
+      temperature,
+      maxTokens,
+      systemPrompt: 'You are a helpful AI coding assistant. Provide clear, concise, and accurate responses.'
+    })
 
     return NextResponse.json({ 
-      response,
-      model,
-      usage: {
-        promptTokens: Math.floor(message.length / 4),
-        completionTokens: Math.floor(response.length / 4),
-        totalTokens: Math.floor((message.length + response.length) / 4)
-      },
-      timestamp: new Date().toISOString()
+      response: response.content,
+      model: response.model,
+      provider,
+      usage: response.usage,
+      timestamp: response.timestamp
     })
 
   } catch (error) {

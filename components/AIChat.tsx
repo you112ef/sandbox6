@@ -12,8 +12,11 @@ import {
   Code,
   Terminal,
   FileText,
-  Zap
+  Zap,
+  Brain,
+  ChevronDown
 } from 'lucide-react'
+import AIModelSelector from './AIModelSelector'
 
 interface Message {
   id: string
@@ -40,15 +43,11 @@ export default function AIChat({ className = '' }: AIChatProps) {
   
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedModel, setSelectedModel] = useState('claude-3-sonnet')
+  const [selectedModel, setSelectedModel] = useState('gpt-4o')
+  const [selectedProvider, setSelectedProvider] = useState('openai')
   const [showSettings, setShowSettings] = useState(false)
+  const [showModelSelector, setShowModelSelector] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-
-  const models = [
-    { id: 'claude-3-sonnet', name: 'Claude 3 Sonnet', provider: 'Anthropic' },
-    { id: 'gpt-4', name: 'GPT-4', provider: 'OpenAI' },
-    { id: 'gemini-pro', name: 'Gemini Pro', provider: 'Google' }
-  ]
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -79,6 +78,7 @@ export default function AIChat({ className = '' }: AIChatProps) {
         body: JSON.stringify({
           message: userInput,
           model: selectedModel,
+          provider: selectedProvider,
           temperature: 0.7,
           maxTokens: 4000
         })
@@ -161,11 +161,21 @@ export default function AIChat({ className = '' }: AIChatProps) {
           </div>
           <div>
             <h3 className="text-sm font-semibold">AI Assistant</h3>
-            <p className="text-xs text-gray-400">Powered by {models.find(m => m.id === selectedModel)?.name}</p>
+            <p className="text-xs text-gray-400">Powered by {selectedProvider} • {selectedModel}</p>
           </div>
         </div>
         
         <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setShowModelSelector(!showModelSelector)}
+            className="flex items-center gap-2 px-3 py-1 bg-gray-700 border border-gray-600 rounded text-white text-sm hover:bg-gray-600 transition-colors"
+          >
+            <Brain className="w-4 h-4" />
+            <span className="capitalize">{selectedProvider}</span>
+            <span className="text-gray-400">•</span>
+            <span>{selectedModel}</span>
+            <ChevronDown className="w-3 h-3" />
+          </button>
           <button
             onClick={() => setShowSettings(!showSettings)}
             className="p-2 hover:bg-gray-700 rounded"
@@ -203,6 +213,22 @@ export default function AIChat({ className = '' }: AIChatProps) {
               </label>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Model Selector */}
+      {showModelSelector && (
+        <div className="border-b border-gray-700">
+          <AIModelSelector
+            selectedModel={selectedModel}
+            selectedProvider={selectedProvider}
+            onModelChange={(provider, model) => {
+              setSelectedProvider(provider)
+              setSelectedModel(model)
+              setShowModelSelector(false)
+            }}
+            className="max-h-96"
+          />
         </div>
       )}
 

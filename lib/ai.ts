@@ -1,6 +1,7 @@
 import OpenAI from 'openai'
 import Anthropic from '@anthropic-ai/sdk'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { aiModels, getModel, getFallbackModel, isToolCallSupported } from './ai-models'
 
 export interface AIModel {
   id: string
@@ -50,6 +51,23 @@ export class AIClient {
     if (process.env.GOOGLE_AI_API_KEY) {
       this.genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY)
     }
+  }
+
+  // Get all available models
+  getAllModels() {
+    return Object.entries(aiModels).map(([provider, models]) => ({
+      provider,
+      models: Object.entries(models).map(([name, model]) => ({
+        name,
+        model,
+        supportsToolCall: isToolCallSupported(model),
+      })),
+    }))
+  }
+
+  // Get model by provider and name
+  getModel(provider: string, modelName: string) {
+    return getModel(provider, modelName)
   }
 
   async chat(message: string, config: AIConfig): Promise<AIResponse> {
