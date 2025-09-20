@@ -15,31 +15,45 @@ interface RegisterBody {
   username?: string
 }
 
-// Mock users database (replace with real database in production)
-const mockUsers = [
-  {
-    id: '1',
-    email: 'demo@vibecode.dev',
-    password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj6hsxq9w5KS', // demo123
-    name: 'Demo User',
-    username: 'demo',
-    role: 'USER',
-    subscription: 'PRO',
-    createdAt: new Date('2024-01-01'),
-    emailVerified: new Date('2024-01-01')
-  },
-  {
-    id: '2',
-    email: 'admin@vibecode.dev',
-    password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj6hsxq9w5KS', // admin123
-    name: 'Administrator',
-    username: 'admin',
-    role: 'ADMIN',
-    subscription: 'ENTERPRISE',
-    createdAt: new Date('2024-01-01'),
-    emailVerified: new Date('2024-01-01')
-  }
-]
+// Real users database using SQLite (file-based database)
+const Database = require('better-sqlite3')
+const path = require('path')
+
+// Initialize SQLite database
+const dbPath = path.join(process.cwd(), 'vibecode.db')
+const db = new Database(dbPath)
+
+// Create users table if it doesn't exist
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    name TEXT,
+    username TEXT UNIQUE,
+    role TEXT DEFAULT 'USER',
+    subscription TEXT DEFAULT 'FREE',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    email_verified DATETIME
+  )
+`)
+
+// Insert demo users if they don't exist
+const insertUser = db.prepare(`
+  INSERT OR IGNORE INTO users (email, password, name, username, role, subscription, email_verified)
+  VALUES (?, ?, ?, ?, ?, ?, ?)
+`)
+
+insertUser.run('demo@vibecode.dev', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj6hsxq9w5KS', 'Demo User', 'demo', 'USER', 'PRO', new Date().toISOString())
+insertUser.run('admin@vibecode.dev', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj6hsxq9w5KS', 'Administrator', 'admin', 'ADMIN', 'ENTERPRISE', new Date().toISOString())
+
+// Database query functions
+const getUserByEmail = db.prepare('SELECT * FROM users WHERE email = ?')
+const getUserById = db.prepare('SELECT * FROM users WHERE id = ?')
+const insertNewUser = db.prepare(`
+  INSERT INTO users (email, password, name, username, role, subscription)
+  VALUES (?, ?, ?, ?, ?, ?)
+`)
 
 export default async function authRoutes(fastify: FastifyInstance) {
   // Login endpoint
@@ -57,8 +71,8 @@ export default async function authRoutes(fastify: FastifyInstance) {
         })
       }
 
-      // Find user
-      const user = mockUsers.find(u => u.email === email)
+      // Find user in database
+      const user = getUserByEmail.get(email)
       if (!user) {
         return reply.code(401).send({
           success: false,
@@ -137,7 +151,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       }
 
       // Check if user already exists
-      const existingUser = mockUsers.find(u => u.email === email)
+      const existingUser = getUserByEmail.get(email)
       if (existingUser) {
         return reply.code(409).send({
           success: false,
@@ -151,20 +165,26 @@ export default async function authRoutes(fastify: FastifyInstance) {
       // Hash password
       const hashedPassword = await bcrypt.hash(password, config.auth.bcryptRounds)
 
-      // Create new user
-      const newUser = {
-        id: String(mockUsers.length + 1),
+      // Create new user in database
+      const result = insertNewUser.run(
         email,
-        password: hashedPassword,
+        hashedPassword,
+        name || email.split('@')[0],
+        username || email.split('@')[0],
+        'USER',
+        'FREE'
+      )
+
+      const newUser = {
+        id: result.lastInsertRowid.toString(),
+        email,
         name: name || email.split('@')[0],
         username: username || email.split('@')[0],
-        role: 'USER' as const,
-        subscription: 'FREE' as const,
-        createdAt: new Date(),
-        emailVerified: null
+        role: 'USER',
+        subscription: 'FREE',
+        created_at: new Date(),
+        email_verified: null
       }
-
-      mockUsers.push(newUser)
 
       // Generate JWT token
       const token = jwt.sign(
@@ -177,8 +197,8 @@ export default async function authRoutes(fastify: FastifyInstance) {
         { expiresIn: config.auth.tokenExpiry }
       )
 
-      // Remove password from response
-      const { password: _, ...userWithoutPassword } = newUser
+      // Return user without password
+      const userWithoutPassword = { ...newUser }
 
       return reply.code(201).send({
         success: true,
@@ -217,7 +237,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
         const token = authHeader.split(' ')[1]
         const decoded = jwt.verify(token, config.auth.jwtSecret) as any
         
-        const user = mockUsers.find(u => u.id === decoded.userId)
+        const user = getUserById.get(decoded.userId)
         if (!user) {
           return reply.code(401).send({
             success: false,

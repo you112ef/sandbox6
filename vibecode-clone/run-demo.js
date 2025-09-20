@@ -3,6 +3,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const Database = require('better-sqlite3');
 
 console.log('🚀 Starting Vibecode Clone Demo Server...\n');
 
@@ -14,46 +15,87 @@ const PORT = 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'demo-static')));
 
-// Mock data
-const mockUsers = [
-  {
-    id: '1',
-    email: 'demo@vibecode.dev',
-    password: 'demo123',
-    name: 'Demo User',
-    role: 'USER'
-  },
-  {
-    id: '2', 
-    email: 'admin@vibecode.dev',
-    password: 'admin123',
-    name: 'Administrator',
-    role: 'ADMIN'
-  }
-];
+// Initialize SQLite database
+const db = new Database('vibecode-demo.db');
 
-const mockWorkspaces = [
-  {
-    id: '1',
-    name: 'My React App',
-    description: 'A modern React application with TypeScript',
-    type: 'TERMINAL',
-    status: 'ACTIVE',
-    aiAgent: 'Claude Code',
-    lastActivity: '2 hours ago',
-    collaborators: 3
-  },
-  {
-    id: '2',
-    name: 'Next.js Blog', 
-    description: 'Personal blog built with Next.js and MDX',
-    type: 'TERMINAL',
-    status: 'ACTIVE',
-    aiAgent: 'GPT-5 Codex',
-    lastActivity: '1 day ago',
-    collaborators: 1
-  }
-];
+// Create tables
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    name TEXT,
+    role TEXT DEFAULT 'USER',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS workspaces (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT,
+    type TEXT DEFAULT 'TERMINAL',
+    status TEXT DEFAULT 'ACTIVE',
+    ai_agent TEXT DEFAULT 'Claude Code',
+    owner_id INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (owner_id) REFERENCES users (id)
+  );
+
+  CREATE TABLE IF NOT EXISTS files (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    workspace_id INTEGER,
+    name TEXT NOT NULL,
+    path TEXT NOT NULL,
+    content TEXT,
+    language TEXT,
+    size INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (workspace_id) REFERENCES workspaces (id)
+  );
+`);
+
+// Insert demo data
+const insertUser = db.prepare('INSERT OR IGNORE INTO users (email, password, name, role) VALUES (?, ?, ?, ?)');
+insertUser.run('demo@vibecode.dev', 'demo123', 'Demo User', 'USER');
+insertUser.run('admin@vibecode.dev', 'admin123', 'Administrator', 'ADMIN');
+
+const insertWorkspace = db.prepare(`
+  INSERT OR IGNORE INTO workspaces (name, description, type, status, ai_agent, owner_id) 
+  VALUES (?, ?, ?, ?, ?, ?)
+`);
+insertWorkspace.run('My React App', 'A modern React application with TypeScript', 'TERMINAL', 'ACTIVE', 'Claude Code', 1);
+insertWorkspace.run('Next.js Blog', 'Personal blog built with Next.js and MDX', 'TERMINAL', 'ACTIVE', 'GPT-5 Codex', 1);
+insertWorkspace.run('Python API', 'FastAPI backend with PostgreSQL', 'TERMINAL', 'PAUSED', 'Gemini CLI', 2);
+
+// Database query functions
+const getUserByCredentials = db.prepare('SELECT * FROM users WHERE email = ? AND password = ?');
+const getAllWorkspaces = db.prepare(`
+  SELECT w.*, u.name as owner_name 
+  FROM workspaces w 
+  JOIN users u ON w.owner_id = u.id 
+  ORDER BY w.updated_at DESC
+`);
+const getWorkspaceById = db.prepare(`
+  SELECT w.*, u.name as owner_name 
+  FROM workspaces w 
+  JOIN users u ON w.owner_id = u.id 
+  WHERE w.id = ?
+`);
+
+// Helper functions
+function formatTimeAgo(dateString) {
+  const now = new Date();
+  const date = new Date(dateString);
+  const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
+  
+  if (diffInHours < 1) return 'just now';
+  if (diffInHours < 24) return `${diffInHours} hours ago`;
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 7) return `${diffInDays} days ago`;
+  return date.toLocaleDateString();
+}
 
 // Routes
 app.get('/', (req, res) => {
@@ -265,41 +307,75 @@ app.get('/', (req, res) => {
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
   
-  const user = mockUsers.find(u => u.email === email && u.password === password);
-  
-  if (!user) {
-    return res.status(401).json({
+  try {
+    const user = getUserByCredentials.get(email, password);
+    
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'AUTHENTICATION_ERROR',
+          message: 'Invalid email or password'
+        }
+      });
+    }
+
+    const { password: _, ...userWithoutPassword } = user;
+    
+    res.json({
+      success: true,
+      data: {
+        user: userWithoutPassword,
+        token: 'demo-jwt-token-' + user.id,
+        message: 'تم تسجيل الدخول بنجاح!'
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
       success: false,
       error: {
-        code: 'AUTHENTICATION_ERROR',
-        message: 'Invalid email or password'
+        code: 'INTERNAL_ERROR',
+        message: 'خطأ في الخادم'
       }
     });
   }
-
-  const { password: _, ...userWithoutPassword } = user;
-  
-  res.json({
-    success: true,
-    data: {
-      user: userWithoutPassword,
-      token: 'demo-jwt-token-' + user.id,
-      message: 'Login successful!'
-    }
-  });
 });
 
 // Workspaces API
 app.get('/api/workspaces', (req, res) => {
-  res.json({
-    success: true,
-    data: mockWorkspaces,
-    meta: {
-      total: mockWorkspaces.length,
-      page: 1,
-      limit: 20
-    }
-  });
+  try {
+    const workspaces = getAllWorkspaces.all().map(workspace => ({
+      id: workspace.id.toString(),
+      name: workspace.name,
+      description: workspace.description,
+      type: workspace.type,
+      status: workspace.status,
+      aiAgent: workspace.ai_agent,
+      lastActivity: formatTimeAgo(workspace.updated_at),
+      collaborators: Math.floor(Math.random() * 5) + 1, // Random for demo
+      owner: workspace.owner_name,
+      createdAt: workspace.created_at,
+      updatedAt: workspace.updated_at
+    }));
+
+    res.json({
+      success: true,
+      data: workspaces,
+      meta: {
+        total: workspaces.length,
+        page: 1,
+        limit: 20
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'خطأ في استرجاع مساحات العمل'
+      }
+    });
+  }
 });
 
 // Templates API  
@@ -357,22 +433,282 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// AI Demo endpoint
-app.post('/api/ai/execute', (req, res) => {
-  const { prompt } = req.body;
+// Create workspace endpoint
+app.post('/api/workspaces', (req, res) => {
+  const { name, description, type = 'TERMINAL', aiAgent = 'Claude Code' } = req.body;
   
-  // Simulate AI response
-  setTimeout(() => {
+  if (!name) {
+    return res.status(400).json({
+      success: false,
+      error: { message: 'اسم مساحة العمل مطلوب' }
+    });
+  }
+
+  try {
+    const insertWorkspace = db.prepare(`
+      INSERT INTO workspaces (name, description, type, ai_agent, owner_id) 
+      VALUES (?, ?, ?, ?, ?)
+    `);
+    
+    const result = insertWorkspace.run(name, description || '', type, aiAgent, 1); // Default owner ID 1
+    
+    // Create workspace directory and files
+    const workspaceDir = path.join(__dirname, 'workspaces', result.lastInsertRowid.toString());
+    fs.mkdirSync(workspaceDir, { recursive: true });
+    
+    // Create initial files
+    const readmeContent = `# ${name}\n\n${description || 'مساحة عمل جديدة في Vibecode Clone'}\n\n## البدء\n\n1. ابدأ بتحرير الملفات\n2. استخدم الذكاء الاصطناعي للمساعدة\n3. شغل الأوامر في الطرفية\n4. انشر مشروعك\n\nتم إنشاء هذا المشروع باستخدام Vibecode Clone 🚀`;
+    
+    const packageJsonContent = JSON.stringify({
+      name: name.toLowerCase().replace(/\s+/g, '-'),
+      version: '1.0.0',
+      description: description || 'مشروع Vibecode Clone',
+      main: 'index.js',
+      scripts: {
+        start: 'node index.js',
+        dev: 'nodemon index.js'
+      },
+      dependencies: {}
+    }, null, 2);
+
+    const indexJsContent = `console.log('مرحباً من ${name}!');\nconsole.log('تم إنشاء هذا المشروع باستخدام Vibecode Clone');`;
+
+    fs.writeFileSync(path.join(workspaceDir, 'README.md'), readmeContent);
+    fs.writeFileSync(path.join(workspaceDir, 'package.json'), packageJsonContent);
+    fs.writeFileSync(path.join(workspaceDir, 'index.js'), indexJsContent);
+
+    // Insert files into database
+    const insertFile = db.prepare(`
+      INSERT INTO files (workspace_id, name, path, content, language, size) 
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    
+    insertFile.run(result.lastInsertRowid, 'README.md', '/README.md', readmeContent, 'markdown', readmeContent.length);
+    insertFile.run(result.lastInsertRowid, 'package.json', '/package.json', packageJsonContent, 'json', packageJsonContent.length);
+    insertFile.run(result.lastInsertRowid, 'index.js', '/index.js', indexJsContent, 'javascript', indexJsContent.length);
+
     res.json({
       success: true,
       data: {
-        response: `AI Response: I can help you with "${prompt}". This is a demo response showing how the AI agent would assist with your request.`,
-        usage: {
-          tokens: 45
-        }
+        id: result.lastInsertRowid,
+        name,
+        description,
+        type,
+        aiAgent,
+        message: 'تم إنشاء مساحة العمل بنجاح!'
       }
     });
-  }, 1000);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: { message: 'خطأ في إنشاء مساحة العمل' }
+    });
+  }
+});
+
+// Get workspace files
+app.get('/api/workspaces/:id/files', (req, res) => {
+  const workspaceId = req.params.id;
+  
+  try {
+    const getFiles = db.prepare('SELECT * FROM files WHERE workspace_id = ? ORDER BY name');
+    const files = getFiles.all(workspaceId);
+    
+    res.json({
+      success: true,
+      data: files.map(file => ({
+        id: file.id,
+        name: file.name,
+        path: file.path,
+        language: file.language,
+        size: file.size,
+        content: file.content,
+        createdAt: file.created_at,
+        updatedAt: file.updated_at
+      }))
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: { message: 'خطأ في استرجاع الملفات' }
+    });
+  }
+});
+
+// Update file content
+app.put('/api/files/:id', (req, res) => {
+  const fileId = req.params.id;
+  const { content } = req.body;
+  
+  try {
+    const updateFile = db.prepare(`
+      UPDATE files 
+      SET content = ?, size = ?, updated_at = CURRENT_TIMESTAMP 
+      WHERE id = ?
+    `);
+    
+    const result = updateFile.run(content, content.length, fileId);
+    
+    if (result.changes === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'الملف غير موجود' }
+      });
+    }
+
+    // Update file on disk too
+    const getFile = db.prepare('SELECT * FROM files WHERE id = ?');
+    const file = getFile.get(fileId);
+    
+    if (file) {
+      const workspaceDir = path.join(__dirname, 'workspaces', file.workspace_id.toString());
+      const filePath = path.join(workspaceDir, file.path);
+      fs.writeFileSync(filePath, content);
+    }
+
+    res.json({
+      success: true,
+      data: { message: 'تم حفظ الملف بنجاح!' }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: { message: 'خطأ في حفظ الملف' }
+    });
+  }
+});
+
+// Execute terminal command
+app.post('/api/workspaces/:id/terminal', (req, res) => {
+  const workspaceId = req.params.id;
+  const { command } = req.body;
+  
+  // Simple command simulation
+  let output = '';
+  
+  switch (command.toLowerCase().trim()) {
+    case 'ls':
+      output = 'README.md  package.json  index.js';
+      break;
+    case 'pwd':
+      output = `/workspaces/${workspaceId}`;
+      break;
+    case 'node index.js':
+      output = `مرحباً من مساحة العمل ${workspaceId}!\nتم إنشاء هذا المشروع باستخدام Vibecode Clone`;
+      break;
+    case 'npm install':
+      output = 'تم تثبيت التبعيات بنجاح!\n\nادded 0 packages in 1.2s';
+      break;
+    case 'cat README.md':
+      try {
+        const getFile = db.prepare('SELECT content FROM files WHERE workspace_id = ? AND name = ?');
+        const file = getFile.get(workspaceId, 'README.md');
+        output = file ? file.content : 'الملف غير موجود';
+      } catch {
+        output = 'خطأ في قراءة الملف';
+      }
+      break;
+    default:
+      output = `تم تنفيذ الأمر: ${command}\n(هذا محاكاة - في النسخة الكاملة سيتم تنفيذ الأوامر الحقيقية)`;
+  }
+
+  res.json({
+    success: true,
+    data: {
+      command,
+      output,
+      exitCode: 0,
+      timestamp: new Date().toISOString()
+    }
+  });
+});
+
+// AI Demo endpoint
+app.post('/api/ai/execute', (req, res) => {
+  const { prompt, workspaceId } = req.body;
+  
+  // Simulate AI response with more realistic responses
+  setTimeout(() => {
+    let response = '';
+    
+    if (prompt.toLowerCase().includes('component') || prompt.toLowerCase().includes('مكون')) {
+      response = `إليك مكون React بسيط:
+
+\`\`\`jsx
+import React from 'react';
+
+const MyComponent = () => {
+  return (
+    <div className="my-component">
+      <h2>مكون جديد</h2>
+      <p>تم إنشاء هذا المكون بواسطة الذكاء الاصطناعي</p>
+    </div>
+  );
+};
+
+export default MyComponent;
+\`\`\`
+
+يمكنك استخدام هذا المكون في مشروعك وتخصيصه حسب احتياجاتك.`;
+    } else if (prompt.toLowerCase().includes('function') || prompt.toLowerCase().includes('دالة')) {
+      response = `إليك دالة JavaScript مفيدة:
+
+\`\`\`javascript
+function processData(data) {
+  // معالجة البيانات
+  return data
+    .filter(item => item.active)
+    .map(item => ({
+      ...item,
+      processed: true,
+      timestamp: new Date().toISOString()
+    }));
+}
+\`\`\`
+
+هذه الدالة تقوم بتصفية البيانات النشطة وإضافة معلومات إضافية.`;
+    } else if (prompt.toLowerCase().includes('style') || prompt.toLowerCase().includes('تصميم')) {
+      response = `إليك بعض أنماط CSS حديثة:
+
+\`\`\`css
+.modern-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 2rem;
+  color: white;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  transition: transform 0.3s ease;
+}
+
+.modern-card:hover {
+  transform: translateY(-5px);
+}
+\`\`\`
+
+هذا التصميم يعطي مظهراً حديثاً وجذاباً.`;
+    } else {
+      response = `فهمت طلبك: "${prompt}"
+
+كمساعد ذكاء اصطناعي، يمكنني مساعدتك في:
+• كتابة الكود وتطوير المكونات
+• إصلاح الأخطاء والمشاكل
+• تحسين الأداء والكود
+• إنشاء التوثيق والشرح
+• اقتراح أفضل الممارسات
+
+ما الذي تحتاج مساعدة محددة فيه؟`;
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        response,
+        usage: { tokens: response.length / 4 }, // Rough estimate
+        model: 'claude-3-sonnet',
+        timestamp: new Date().toISOString()
+      }
+    });
+  }, Math.random() * 2000 + 500); // Random delay 0.5-2.5 seconds
 });
 
 // Start server

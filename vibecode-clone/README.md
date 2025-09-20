@@ -49,18 +49,18 @@ vibecode-clone/
 
 ## 🚀 Quick Start
 
-### Option 1: Simple Demo (Recommended for Testing)
+### Option 1: النظام الحقيقي (موصى به للاختبار)
 
-**No database or complex setup required!**
+**قاعدة بيانات حقيقية + نظام ملفات حقيقي!**
 
 ```bash
-# Navigate to the project directory
+# انتقل إلى مجلد المشروع
 cd vibecode-clone
 
-# Install minimal dependencies
-npm install express
+# تثبيت التبعيات الأساسية
+npm install express better-sqlite3
 
-# Start the demo server
+# تشغيل الخادم الحقيقي
 node run-demo.js
 ```
 
@@ -70,11 +70,16 @@ node run-demo.js
 - Demo User: `demo@vibecode.dev` / `demo123`
 - Admin: `admin@vibecode.dev` / `admin123`
 
-**📡 API Endpoints:**
-- `POST /api/auth/login` - User authentication
-- `GET /api/workspaces` - List workspaces
-- `GET /api/templates` - Browse templates
-- `GET /api/health` - Server health check
+**📡 API Endpoints (حقيقية وعاملة):**
+- `POST /api/auth/login` - تسجيل دخول حقيقي
+- `GET /api/workspaces` - قائمة مساحات العمل من قاعدة البيانات
+- `POST /api/workspaces` - إنشاء مساحة عمل جديدة (ملفات حقيقية)
+- `GET /api/workspaces/:id/files` - ملفات المشروع الحقيقية
+- `PUT /api/files/:id` - تحديث وحفظ الملفات
+- `POST /api/workspaces/:id/terminal` - تنفيذ أوامر الطرفية
+- `POST /api/ai/execute` - مساعد الذكاء الاصطناعي
+- `GET /api/templates` - قوالب المشاريع
+- `GET /api/health` - فحص حالة الخادم
 
 ### Option 2: Full Development Setup
 

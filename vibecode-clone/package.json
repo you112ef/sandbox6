@@ -39,7 +39,8 @@
     "docker:down": "docker-compose down"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "better-sqlite3": "^9.2.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",
