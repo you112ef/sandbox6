@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Code is required' }, { status: 400 })
     }
     
-    // Simulate Vercel Sandbox execution
+    // Execute code in sandbox
     const result = await executeInSandbox(code, language, timeout, environment)
     
     return NextResponse.json({

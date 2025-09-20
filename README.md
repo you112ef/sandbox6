@@ -2,6 +2,20 @@
 
 A complete AI-powered terminal workspace with code execution, file management, and AI agents. Built with Next.js and designed to work seamlessly on Vercel.
 
+## 🚀 Live Demo
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/vibecode-terminal)
+
+## ✨ Features
+
+### ✅ Fully Functional
+- **Real Terminal**: Working xterm.js terminal with command execution
+- **AI Chat**: Functional AI assistant with multiple models
+- **Code Editor**: Monaco editor with syntax highlighting
+- **File Explorer**: Complete workspace management
+- **Code Execution**: Sandbox-based code execution
+- **API Integration**: Real API endpoints for all features
+
 ## 🚀 Features
 
 ### Core Functionality

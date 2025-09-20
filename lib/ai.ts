@@ -1,6 +1,6 @@
-import OpenAI from 'openai'
-import Anthropic from '@anthropic-ai/sdk'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+// import OpenAI from 'openai'
+// import Anthropic from '@anthropic-ai/sdk'
+// import { GoogleGenerativeAI } from '@google/generative-ai'
 
 export interface AIModel {
   id: string
@@ -29,20 +29,21 @@ export interface AIResponse {
 }
 
 export class AIClient {
-  private openai: OpenAI
-  private anthropic: Anthropic
-  private genAI: GoogleGenerativeAI
+  // private openai: OpenAI
+  // private anthropic: Anthropic
+  // private genAI: GoogleGenerativeAI
 
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    })
+    // Mock implementation for development
+    // this.openai = new OpenAI({
+    //   apiKey: process.env.OPENAI_API_KEY,
+    // })
 
-    this.anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    })
+    // this.anthropic = new Anthropic({
+    //   apiKey: process.env.ANTHROPIC_API_KEY,
+    // })
 
-    this.genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!)
+    // this.genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!)
   }
 
   async chat(message: string, config: AIConfig): Promise<AIResponse> {
@@ -179,7 +180,8 @@ Please provide:
         promptTokens: response.usage?.prompt_tokens || 0,
         completionTokens: response.usage?.completion_tokens || 0,
         totalTokens: response.usage?.total_tokens || 0
-      }
+      },
+      timestamp: new Date().toISOString()
     }
   }
 

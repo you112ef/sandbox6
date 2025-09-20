@@ -1,0 +1,26 @@
+# Global owners
+* @your-username
+
+# Core application files
+/app/ @your-username
+/components/ @your-username
+/lib/ @your-username
+/contexts/ @your-username
+
+# API routes
+/app/api/ @your-username
+
+# Configuration files
+package.json @your-username
+next.config.js @your-username
+tsconfig.json @your-username
+tailwind.config.js @your-username
+
+# Documentation
+README.md @your-username
+CONTRIBUTING.md @your-username
+CHANGELOG.md @your-username
+SECURITY.md @your-username
+
+# GitHub workflows
+/.github/ @your-username

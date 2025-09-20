@@ -17,6 +17,9 @@ dist/
 .env.test.local
 .env.production.local
 
+# Keep example env file
+!.env.local.example
+
 # Vercel
 .vercel
 

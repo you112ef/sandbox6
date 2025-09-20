@@ -187,11 +187,35 @@ export default App`)
     setOutput('')
     
     try {
-      // Simulate code execution
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setOutput('✓ Code executed successfully in Vercel Sandbox\n✓ Output: Hello VibeCode!\n✓ Count: 0')
+      const response = await fetch('/api/sandbox', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: code,
+          language: language,
+          timeout: 30000,
+          environment: 'node'
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to execute code')
+      }
+
+      const data = await response.json()
+      
+      if (data.success) {
+        setOutput(`✓ Code executed successfully in Vercel Sandbox
+✓ Output: ${data.result}
+✓ Execution time: ${data.executionTime}ms
+✓ Memory usage: ${data.memoryUsage}MB`)
+      } else {
+        setOutput(`✗ Error: ${data.error}`)
+      }
     } catch (error) {
-      setOutput(`✗ Error: ${error}`)
+      setOutput(`✗ Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsRunning(false)
     }
@@ -350,7 +374,7 @@ export default App`)
               detectIndentation: true,
               renderWhitespace: 'selection',
               renderControlCharacters: true,
-              renderIndentGuides: true,
+              // renderIndentGuides: true, // Deprecated option
               highlightActiveIndentGuide: true,
               bracketPairColorization: {
                 enabled: true

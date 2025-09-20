@@ -66,17 +66,34 @@ export default function AIChat({ className = '' }: AIChatProps) {
     }
 
     setMessages(prev => [...prev, userMessage])
+    const userInput = input.trim()
     setInput('')
     setIsLoading(true)
 
     try {
-      // Simulate AI response
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userInput,
+          model: selectedModel,
+          temperature: 0.7,
+          maxTokens: 4000
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to get AI response')
+      }
+
+      const data = await response.json()
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: generateAIResponse(input.trim()),
+        content: data.response,
         timestamp: new Date(),
         type: 'code'
       }
@@ -84,224 +101,17 @@ export default function AIChat({ className = '' }: AIChatProps) {
       setMessages(prev => [...prev, assistantMessage])
     } catch (error) {
       console.error('Error sending message:', error)
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.',
+        timestamp: new Date(),
+        type: 'text'
+      }
+      setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const generateAIResponse = (userInput: string): string => {
-    const lowerInput = userInput.toLowerCase()
-    
-    if (lowerInput.includes('react') || lowerInput.includes('component')) {
-      return `Here's a React component example:
-
-\`\`\`tsx
-import React, { useState } from 'react'
-
-interface ButtonProps {
-  onClick: () => void
-  children: React.ReactNode
-  variant?: 'primary' | 'secondary'
-}
-
-const Button: React.FC<ButtonProps> = ({ 
-  onClick, 
-  children, 
-  variant = 'primary' 
-}) => {
-  const [isLoading, setIsLoading] = useState(false)
-  
-  const handleClick = async () => {
-    setIsLoading(true)
-    try {
-      await onClick()
-    } finally {
-      setIsLoading(false)
-    }
-  }
-  
-  return (
-    <button
-      onClick={handleClick}
-      disabled={isLoading}
-      className={\`px-4 py-2 rounded font-medium transition-colors \${
-        variant === 'primary' 
-          ? 'bg-blue-600 text-white hover:bg-blue-700' 
-          : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-      }\`}
-    >
-      {isLoading ? 'Loading...' : children}
-    </button>
-  )
-}
-
-export default Button
-\`\`\`
-
-This component includes:
-- TypeScript interfaces for type safety
-- Loading state management
-- Variant styling with Tailwind CSS
-- Proper event handling
-
-Would you like me to explain any part of this code?`
-    }
-    
-    if (lowerInput.includes('api') || lowerInput.includes('fetch')) {
-      return `Here's how to create a robust API client:
-
-\`\`\`typescript
-// lib/api.ts
-interface ApiResponse<T> {
-  data: T
-  success: boolean
-  message?: string
-}
-
-class ApiClient {
-  private baseURL: string
-  
-  constructor(baseURL: string) {
-    this.baseURL = baseURL
-  }
-  
-  async request<T>(
-    endpoint: string, 
-    options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
-    try {
-      const response = await fetch(\`\${this.baseURL}\${endpoint}\`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers,
-        },
-        ...options,
-      })
-      
-      if (!response.ok) {
-        throw new Error(\`HTTP error! status: \${response.status}\`)
-      }
-      
-      const data = await response.json()
-      return { data, success: true }
-    } catch (error) {
-      return {
-        data: null as T,
-        success: false,
-        message: error instanceof Error ? error.message : 'Unknown error'
-      }
-    }
-  }
-  
-  async get<T>(endpoint: string): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { method: 'GET' })
-  }
-  
-  async post<T>(endpoint: string, data: any): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
-  }
-}
-
-export const apiClient = new ApiClient(process.env.NEXT_PUBLIC_API_URL || '')
-\`\`\`
-
-This API client provides:
-- Type-safe responses
-- Error handling
-- Reusable HTTP methods
-- Environment-based configuration
-
-Would you like me to show you how to use it?`
-    }
-    
-    if (lowerInput.includes('debug') || lowerInput.includes('error')) {
-      return `Here are some debugging strategies:
-
-\`\`\`typescript
-// Debugging utilities
-const debug = {
-  log: (message: string, data?: any) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(\`🐛 [DEBUG] \${message}\`, data)
-    }
-  },
-  
-  error: (error: Error, context?: string) => {
-    console.error(\`❌ [ERROR]\${context ? \` in \${context}\` : ''}:\`, error)
-    // Send to error tracking service
-  },
-  
-  performance: (label: string, fn: () => void) => {
-    const start = performance.now()
-    fn()
-    const end = performance.now()
-    console.log(\`⏱️ [PERF] \${label}: \${end - start}ms\`)
-  }
-}
-
-// React error boundary
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = { hasError: false, error: null }
-  }
-  
-  static getDerivedStateFromError(error) {
-    return { hasError: true, error }
-  }
-  
-  componentDidCatch(error, errorInfo) {
-    debug.error(error, 'ErrorBoundary')
-  }
-  
-  render() {
-    if (this.state.hasError) {
-      return <div>Something went wrong.</div>
-    }
-    return this.props.children
-  }
-}
-\`\`\`
-
-These tools help with:
-- Development-only logging
-- Error tracking and reporting
-- Performance monitoring
-- Graceful error handling
-
-Need help with a specific error?`
-    }
-    
-    return `I understand you're asking about "${userInput}". Here's how I can help:
-
-\`\`\`typescript
-// Example code structure
-interface Example {
-  question: string
-  solution: string
-  explanation: string
-}
-
-const handleQuestion = (input: string): Example => {
-  return {
-    question: input,
-    solution: "I'll provide a tailored solution",
-    explanation: "With detailed explanations and best practices"
-  }
-}
-\`\`\`
-
-I can help you with:
-- **Code Generation**: Write functions, components, or entire applications
-- **Debugging**: Identify and fix issues in your code
-- **Optimization**: Improve performance and efficiency
-- **Best Practices**: Follow industry standards and patterns
-- **Learning**: Explain concepts and provide examples
-
-What specific coding challenge are you working on?`
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
