@@ -1,106 +1,181 @@
-<h1 align="center">:beach_umbrella: sandbox</h1>
+# VibeCode Terminal
 
-<p align="center">
-  A nifty JavaScript sandbox for Node.js.
-  <br />
-  <a href="https://github.com/gf3/sandbox/releases"><img src="https://img.shields.io/github/v/release/gf3/sandbox" alt="Latest Release"></a>
-  <a href="https://github.com/gf3/sandbox/actions"><img src="https://github.com/gf3/sandbox/actions/workflows/tests.yml/badge.svg?branch=main" alt="Build Status"></a>
-</p>
+A complete AI-powered terminal workspace with code execution, file management, and AI agents. Built with Next.js and designed to work seamlessly on Vercel.
 
-## What is it?
+## 🚀 Features
 
-**It can...**
+### Core Functionality
+- **Terminal Emulation**: Full-featured terminal with xterm.js
+- **Code Editor**: Monaco editor with syntax highlighting and IntelliSense
+- **File Explorer**: Complete workspace management
+- **AI Integration**: Multiple AI models (Claude, GPT-4, Gemini)
+- **Code Execution**: Secure sandbox execution with Vercel Sandbox
+- **Real-time Collaboration**: WebSocket-based collaboration
 
-- [x] Be used to execute untrusted code
-- [ ] Timeout long-running code and infinite loops
-- [x] Handle errors gracefully
-- [x] Run restricted code
-- [x] Pass rich data structures back
-- [ ] Capture console output
+### AI Capabilities
+- **Code Generation**: Generate code from natural language
+- **Debugging**: AI-powered error detection and fixes
+- **Code Optimization**: Performance improvements and best practices
+- **Code Explanation**: Detailed code analysis and documentation
+- **Multi-Model Support**: Switch between different AI providers
 
-```js
-const s = new Sandbox();
+### Development Tools
+- **Syntax Highlighting**: Support for 50+ programming languages
+- **Auto-completion**: Intelligent code suggestions
+- **Error Detection**: Real-time linting and error highlighting
+- **Code Formatting**: Automatic code formatting
+- **Git Integration**: Version control and collaboration
 
-s.eval("const o = { answer: 4.2 }; o", function(err, res) {
-  console.log("The answer is: %d", res.answer * 10); // The answer is: 42
-});
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 14, React 18, TypeScript
+- **Styling**: Tailwind CSS
+- **Terminal**: xterm.js with addons
+- **Editor**: Monaco Editor (VS Code engine)
+- **AI**: OpenAI, Anthropic Claude, Google Gemini
+- **Execution**: Vercel Sandbox
+- **Deployment**: Vercel
+
+## 📦 Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-username/vibecode-terminal.git
+   cd vibecode-terminal
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   cp .env.local.example .env.local
+   ```
+   
+   Fill in your API keys:
+   ```env
+   OPENAI_API_KEY=your_openai_api_key_here
+   ANTHROPIC_API_KEY=your_anthropic_api_key_here
+   GOOGLE_AI_API_KEY=your_google_ai_api_key_here
+   VERCEL_SANDBOX_TOKEN=your_vercel_sandbox_token_here
+   ```
+
+4. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+
+5. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## 🚀 Deployment on Vercel
+
+### Automatic Deployment
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Set environment variables in Vercel dashboard
+4. Deploy automatically
+
+### Manual Deployment
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel
+
+# Set environment variables
+vercel env add OPENAI_API_KEY
+vercel env add ANTHROPIC_API_KEY
+vercel env add GOOGLE_AI_API_KEY
+vercel env add VERCEL_SANDBOX_TOKEN
 ```
 
-## Installation
+## 🔧 Configuration
 
-```sh
-npm install --save sandbox
-```
+### Environment Variables
 
-By default the package will attempt to download the corresponding binary release
-for your platform. If you wish to skip this action you can set the
-`SANDBOX_SKIP_DOWNLOAD` environment variable:
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `OPENAI_API_KEY` | OpenAI API key for GPT models | Yes |
+| `ANTHROPIC_API_KEY` | Anthropic API key for Claude | Yes |
+| `GOOGLE_AI_API_KEY` | Google AI API key for Gemini | Yes |
+| `VERCEL_SANDBOX_TOKEN` | Vercel Sandbox token for code execution | Yes |
+| `NEXT_PUBLIC_APP_URL` | Application URL | No |
+| `JWT_SECRET` | JWT secret for authentication | No |
+| `ENCRYPTION_KEY` | Encryption key for secure data | No |
 
-```sh
-env SANDBOX_SKIP_DOWNLOAD=1 npm install --save sandbox
-```
+### AI Model Configuration
 
-## Usage
+The application supports multiple AI models with different capabilities:
 
-**NOTE**: As it stands, only values that can be serialized to JSON may be
-returned.
+- **GPT-4**: Best for complex reasoning and code generation
+- **Claude 3 Sonnet**: Excellent for code analysis and debugging
+- **Gemini Pro**: Great for multimodal tasks and explanations
 
-## About
+## 📖 Usage
 
-`sandbox` is a tool to allow safe local execution of JavaScript.
+### Terminal Commands
+- `help` - Show available commands
+- `ls` - List files and directories
+- `cd <directory>` - Change directory
+- `cat <file>` - Display file contents
+- `run` - Execute code in sandbox
+- `ai` - Open AI chat interface
+- `clear` - Clear terminal
 
-The previous version of `sandbox` attempted to accomplish this by spawning a
-child process and running the untrusted code in a new Node.js context with known
-exploits patched. Unfortunately this didn't work well from a security standpoint
-and it became increasingly difficult to keep up with the whack-a-mole of
-security vulnerabilities. In fact, the previous version still has unaddressed
-vulnerabilities that are impossible to patch with that architecture.
+### AI Features
+1. **Code Generation**: Ask AI to generate code
+2. **Debugging**: Get help fixing errors
+3. **Optimization**: Improve code performance
+4. **Explanation**: Understand complex code
+5. **Best Practices**: Learn industry standards
 
-The current version of `sandbox` takes a new approach—it embeds a JavaScript
-interpreter in the library which executes code in a separate context in another
-thread. This is made possible with the help of two incredible projects:
+### File Management
+- Create, edit, and delete files
+- Organize projects with folders
+- Version control with Git
+- Export/import workspaces
 
-- [Boa][doc-boa] - a JavaScript interpreter written in [Rust][doc-rust]
-- [Neon][doc-neon] - a library for interfacing with [Node-API][node-napi]
+## 🔒 Security
 
-The major drawback to this approach is that it either requires the user to build
-the `sandbox` locally from source (which requires the user to have the rust
-build tools onhand) or provide pre-built binaries for every platform would need
-to be provided. In order to make things a little more seamless for users, we've
-opted to provided pre-built binaries for the following platforms:
+- **Sandboxed Execution**: All code runs in isolated environments
+- **API Key Protection**: Secure handling of AI API keys
+- **Input Validation**: All inputs are validated and sanitized
+- **Rate Limiting**: API calls are rate-limited to prevent abuse
+- **HTTPS Only**: All communications are encrypted
 
-- Linux x86_64
-- MacOS arm64
-- MacOS x86_64
-- Windows x86_64
+## 🤝 Contributing
 
-Given these targets we should be able to meet the needs of most users.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## Building
+## 📝 License
 
-First, if you don't already have the rust toolchain installed you can follow the
-instructions for installing rustup:
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-[Install rust][rust-install].
+## 🙏 Acknowledgments
 
-Next, running `npm run build` will attempt to build the project with
-[cargo][doc-cargo] and move the compiled binary to `./index.node`.
+- [Next.js](https://nextjs.org/) - React framework
+- [Monaco Editor](https://microsoft.github.io/monaco-editor/) - Code editor
+- [xterm.js](https://xtermjs.org/) - Terminal emulator
+- [Vercel](https://vercel.com/) - Deployment platform
+- [OpenAI](https://openai.com/) - AI models
+- [Anthropic](https://anthropic.com/) - Claude AI
+- [Google AI](https://ai.google/) - Gemini models
 
-At this point you should be able to work with `sandbox` and run the tests: `npm
-test`.
+## 📞 Support
 
-## Learn More
+- **Documentation**: [docs.vibecode.com](https://docs.vibecode.com)
+- **Issues**: [GitHub Issues](https://github.com/your-username/vibecode-terminal/issues)
+- **Discord**: [VibeCode Community](https://discord.gg/vibecode)
+- **Email**: support@vibecode.com
 
-To learn more about Neon, see the [Neon documentation][doc-neon].
+---
 
-To learn more about Rust, see the [Rust documentation][doc-rust].
-
-To learn more about Node, see the [Node documentation][doc-node].
-
-[doc-boa]: https://github.com/boa-dev/boa
-[doc-cargo]: https://doc.rust-lang.org/stable/cargo/
-[doc-neon]: https://neon-bindings.com
-[doc-node]: https://nodejs.org
-[doc-rust]: https://www.rust-lang.org
-[node-napi]: https://nodejs.org/dist/latest-v14.x/docs/api/n-api.html#n_api_node_api
-[rust-install]: https://www.rust-lang.org/tools/install
+Built with ❤️ by the VibeCode Team
