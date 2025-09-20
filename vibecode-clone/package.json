@@ -10,6 +10,8 @@
     "shared"
   ],
   "scripts": {
+    "demo": "node run-demo.js",
+    "start": "node start.js",
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\" \"npm run dev:agents\"",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",
@@ -35,6 +37,9 @@
     "docker:build": "docker-compose build",
     "docker:up": "docker-compose up",
     "docker:down": "docker-compose down"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",

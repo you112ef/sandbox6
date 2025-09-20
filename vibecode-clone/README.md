@@ -49,40 +49,58 @@ vibecode-clone/
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Node.js 18+
-- PostgreSQL 14+
-- Docker
-- Git
+### Option 1: Simple Demo (Recommended for Testing)
 
-### Installation
+**No database or complex setup required!**
 
-1. **Clone the repository**
 ```bash
-git clone https://github.com/your-org/vibecode-clone.git
+# Navigate to the project directory
 cd vibecode-clone
+
+# Install minimal dependencies
+npm install express
+
+# Start the demo server
+node run-demo.js
 ```
 
-2. **Install dependencies**
+**🌐 Access the demo at: http://localhost:3000**
+
+**🔐 Demo Accounts:**
+- Demo User: `demo@vibecode.dev` / `demo123`
+- Admin: `admin@vibecode.dev` / `admin123`
+
+**📡 API Endpoints:**
+- `POST /api/auth/login` - User authentication
+- `GET /api/workspaces` - List workspaces
+- `GET /api/templates` - Browse templates
+- `GET /api/health` - Server health check
+
+### Option 2: Full Development Setup
+
+#### Prerequisites
+- Node.js 18+
+- npm or yarn
+
+#### Installation
+
+1. **Install all dependencies**
 ```bash
 npm install
 ```
 
-3. **Set up environment variables**
+2. **Set up environment variables**
 ```bash
 cp .env.example .env.local
 # Edit .env.local with your configuration
 ```
 
-4. **Initialize the database**
+3. **Start all services**
 ```bash
-npm run db:setup
-npm run db:migrate
-npm run db:seed
-```
+# Option A: Use the startup script
+node start.js
 
-5. **Start the development servers**
-```bash
+# Option B: Start manually
 npm run dev
 ```
 
@@ -90,6 +108,16 @@ This will start:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8000
 - AI Agent Manager: http://localhost:8001
+
+### Option 3: Docker Setup (Production-like)
+
+```bash
+# Build and start all services
+docker-compose -f docker/docker-compose.yml up --build
+
+# Or use the production setup
+npm run docker:up
+```
 
 ### Environment Variables
 
